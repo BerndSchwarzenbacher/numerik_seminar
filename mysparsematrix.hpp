@@ -22,13 +22,34 @@ public:
         }
 
         ///////////////////////////////////////////////////////////////////////
-        void MultAdd2 (double s, const BaseVector & x, BaseVector & y) const {
+         void MultAdd2 (double s, const BaseVector & x, BaseVector & y) const {
             static Timer timer("SparseMatrix::MultAdd2");
             RegionTimer reg (timer);
             FlatVector<double> fx = x.FV<double> ();
             FlatVector<double> fy = y.FV<double> ();
 
-//#pragma omp parallel for
+
+            for (int i = 0; i < this->Height(); ++i)
+            {
+              int first = firsti [i];
+              int last  = firsti [i+1];
+ 
+             for (int j = first; j < last; ++j)
+              {
+                fy(i) += data[j] * fx(colnr[i]);
+              }
+
+             fy(i) *= s;
+            }
+ 	   }
+      /////////////////////////////////////////////////////////////////////
+       void MultAdd3 (double s, const BaseVector & x, BaseVector & y) const {
+            static Timer timer("SparseMatrix::MultAdd3");
+            RegionTimer reg (timer);
+            FlatVector<double> fx = x.FV<double> ();
+            FlatVector<double> fy = y.FV<double> ();
+
+#pragma omp parallel for
             for (int i = 0; i < this->Height(); ++i)
             {
               int first = firsti [i];
@@ -42,7 +63,7 @@ public:
               fy(i) *= s;
             }
 
-            // your special implementation of MultAdd...
+
         }
 };
 

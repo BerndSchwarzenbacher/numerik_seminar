@@ -22,8 +22,12 @@ int main( int argc, char *argv[] ) {
     vecy = 3.0;
     AutoVector vecy2 = mymat.CreateVector();
     vecy2 = 3.0;
+    AutoVector vecy3 = mymat.CreateVector();
+    vecy3 = 3.0;
+
 
     mymat.MultAdd1(1.0, vecx, vecy);
     mymat.MultAdd2(1.0, vecx, vecy2);
+    mymat.MultAdd3(1.0, vecx, vecy3);
 }
 
