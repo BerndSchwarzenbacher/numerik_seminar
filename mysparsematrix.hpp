@@ -12,14 +12,36 @@ public:
 //         your own constructor...
     }
 
-        /////////////////////////////////////////////////////////////////////////
         void MultAdd1 (double s, const BaseVector & x, BaseVector & y) const {
             static Timer timer("SparseMatrix::MultAdd1");
             RegionTimer reg (timer);
             FlatVector<double> fx = x.FV<double> ();
             FlatVector<double> fy = y.FV<double> ();
-            for (int i = 0; i < this->Height(); i++)
-                fy(i) += s * RowTimesVector (i, fx);
+            for (int i = 0; i < this->Height(); ++i)
+              fy(i) += s * RowTimesVector (i, fx);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+        void MultAdd2 (double s, const BaseVector & x, BaseVector & y) const {
+            static Timer timer("SparseMatrix::MultAdd2");
+            RegionTimer reg (timer);
+            FlatVector<double> fx = x.FV<double> ();
+            FlatVector<double> fy = y.FV<double> ();
+
+//#pragma omp parallel for
+            for (int i = 0; i < this->Height(); ++i)
+            {
+              int first = firsti [i];
+              int last  = firsti [i+1];
+
+              for (int j = first; j < last; ++j)
+              {
+                fy(i) += data[j] * fx(colnr[i]);
+              }
+
+              fy(i) *= s;
+            }
+
             // your special implementation of MultAdd...
         }
 };

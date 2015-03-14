@@ -5,3 +5,5 @@ all: main.o
 main.o : main.cpp
 	$(NGSCXX) $? -o $@
 
+clean:
+	rm main.o
