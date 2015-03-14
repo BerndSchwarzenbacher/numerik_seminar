@@ -1,15 +1,14 @@
 from ngsolve import *
-pde = comp.PDE("pde_file_eintragen") 
+pde = comp.PDE("high_conductivity.pde")
 mesh = pde.Mesh()
 
-v = pde.spaces["fespace_eintragen"]
+v = pde.spaces["v"]
 v.Update (heapsize=1000000)
 
-a = pde.bilinearforms["bilinearform eintragen"]
+a = pde.bilinearforms["a"]
 a.Assemble()
 
 archive = ngstd.Archive("matrix.out",True, True)
 mat = a.mat
 la.DoArchive(archive,mat)
-
 

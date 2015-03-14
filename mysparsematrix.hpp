@@ -5,6 +5,7 @@
 
 
 using namespace ngsolve;
+
 class MySparseMatrix : public SparseMatrix<double,double,double> {
 public:
     MySparseMatrix(const SparseMatrixTM<double> & mat) : SparseMatrix<double,double,double>(mat), SparseMatrixTM<double>(mat) {
