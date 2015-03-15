@@ -49,9 +49,8 @@ public:
             FlatVector<double> fx = x.FV<double> ();
             FlatVector<double> fy = y.FV<double> ();
 
-	    int i;
 #pragma omp parallel for
-            for (i = 0; i < this->Height(); ++i)
+            for (int i = 0; i < this->Height(); ++i)
             {
               int first = firsti [i];
               int last  = firsti [i+1];
@@ -97,9 +96,8 @@ public:
             FlatVector<double> fx = x.FV<double> ();
             FlatVector<double> fy = y.FV<double> ();
 	    
-	    int i;
 #pragma omp parallel for
-            for (i = 0; i < this->Height(); ++i)
+            for (int i = 0; i < this->Height(); ++i)
             {
               int first = firsti [i];
               int last  = firsti [i+1];
