@@ -24,10 +24,17 @@ int main( int argc, char *argv[] ) {
     vecy2 = 3.0;
     AutoVector vecy3 = mymat.CreateVector();
     vecy3 = 3.0;
+    AutoVector vecy4 = mymat.CreateVector();
+    vecy4 = 3.0;
+    AutoVector vecy5 = mymat.CreateVector();
+    vecy5 = 3.0;
+
 
 
     mymat.MultAdd1(1.0, vecx, vecy);
     mymat.MultAdd2(1.0, vecx, vecy2);
     mymat.MultAdd3(1.0, vecx, vecy3);
+    mymat.TranMultAdd1(1.0, vecx, vecy4);
+    mymat.TranMultAdd2(1.0, vecx, vecy5);
 }
 

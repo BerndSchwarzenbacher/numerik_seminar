@@ -68,8 +68,31 @@ public:
         }
 
 	////////////////////////////////////////////////////////////////////
-	void TranMultAdd (double s, const BaseVector & x, BaseVector & y) const {
-            static Timer timer("SparseMatrix::MultAdd3");
+	void TranMultAdd1 (double s, const BaseVector & x, BaseVector & y) const {
+            static Timer timer("SparseMatrix::TranMultAdd1");
+            RegionTimer reg (timer);
+            FlatVector<double> fx = x.FV<double> ();
+            FlatVector<double> fy = y.FV<double> ();
+	    
+            for (int i = 0; i < this->Height(); ++i)
+            {
+              int first = firsti [i];
+              int last  = firsti [i+1];
+
+              for (int j = first; j < last; ++j)
+              {
+                fy(colnr[j]) += data[j] * fx(i);
+              }
+
+              fy(i) *= s;
+            }
+
+
+        }
+
+	////////////////////////////////////////////////////////////////////
+	void TranMultAdd2 (double s, const BaseVector & x, BaseVector & y) const {
+            static Timer timer("SparseMatrix::TranMultAdd2");
             RegionTimer reg (timer);
             FlatVector<double> fx = x.FV<double> ();
             FlatVector<double> fy = y.FV<double> ();
@@ -83,7 +106,7 @@ public:
 
               for (int j = first; j < last; ++j)
               {
-                fy(i) += data[j] * fx(colnr[j]);
+                fy(colnr[j]) += data[j] * fx(i);
               }
 
               fy(i) *= s;
@@ -91,6 +114,7 @@ public:
 
 
         }
+
 
 };
 
