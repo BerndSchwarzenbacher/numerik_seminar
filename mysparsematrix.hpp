@@ -36,7 +36,7 @@ public:
  
              for (int j = first; j < last; ++j)
               {
-                fy(i) += data[j] * fx(colnr[i]);
+                fy(i) += data[j] * fx(colnr[j]);
               }
 
              fy(i) *= s;
@@ -49,15 +49,16 @@ public:
             FlatVector<double> fx = x.FV<double> ();
             FlatVector<double> fy = y.FV<double> ();
 
+	    int i;
 #pragma omp parallel for
-            for (int i = 0; i < this->Height(); ++i)
+            for (i = 0; i < this->Height(); ++i)
             {
               int first = firsti [i];
               int last  = firsti [i+1];
 
               for (int j = first; j < last; ++j)
               {
-                fy(i) += data[j] * fx(colnr[i]);
+                fy(i) += data[j] * fx(colnr[j]);
               }
 
               fy(i) *= s;
@@ -65,6 +66,32 @@ public:
 
 
         }
+
+	////////////////////////////////////////////////////////////////////
+	void TranMultAdd (double s, const BaseVector & x, BaseVector & y) const {
+            static Timer timer("SparseMatrix::MultAdd3");
+            RegionTimer reg (timer);
+            FlatVector<double> fx = x.FV<double> ();
+            FlatVector<double> fy = y.FV<double> ();
+	    
+	    int i;
+#pragma omp parallel for
+            for (i = 0; i < this->Height(); ++i)
+            {
+              int first = firsti [i];
+              int last  = firsti [i+1];
+
+              for (int j = first; j < last; ++j)
+              {
+                fy(i) += data[j] * fx(colnr[j]);
+              }
+
+              fy(i) *= s;
+            }
+
+
+        }
+
 };
 
 void LoadMatrix(string filename, SparseMatrix<double> & mat) {
