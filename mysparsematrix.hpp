@@ -12,88 +12,111 @@ public:
 //         your own constructor...
     }
 
-        void MultAdd1 (double s, const BaseVector & x, BaseVector & y) const {
-            static Timer timer("SparseMatrix::MultAdd1");
-            RegionTimer reg (timer);
-            FlatVector<double> fx = x.FV<double> ();
-            FlatVector<double> fy = y.FV<double> ();
-            for (int i = 0; i < this->Height(); ++i)
-              fy(i) += s * RowTimesVector (i, fx);
-        }
+  void MultAdd1 (double s, const BaseVector & x, BaseVector & y) const
+  {
+    static Timer timer("SparseMatrix::MultAdd-Original");
+    RegionTimer reg (timer);
+    FlatVector<double> fx = x.FV<double> ();
+    FlatVector<double> fy = y.FV<double> ();
+    for (int i = 0; i < this->Height(); ++i)
+      fy(i) += s * RowTimesVector (i, fx);
+  }
 
-        ///////////////////////////////////////////////////////////////////////
-         void MultAdd2 (double s, const BaseVector & x, BaseVector & y) const {
-            static Timer timer("SparseMatrix::MultAdd2");
-            RegionTimer reg (timer);
-            FlatVector<double> fx = x.FV<double> ();
-            FlatVector<double> fy = y.FV<double> ();
+  ///////////////////////////////////////////////////////////////////////
+  void MultAdd2 (double s, const BaseVector & x, BaseVector & y) const
+  {
+    static Timer timer("SparseMatrix::MultAdd-Sequential");
+    RegionTimer reg (timer);
+    FlatVector<double> fx = x.FV<double> ();
+    FlatVector<double> fy = y.FV<double> ();
 
+    for (int i = 0; i < this->Height(); ++i)
+    {
+      int first = firsti [i];
+      int last  = firsti [i+1];
 
-            for (int i = 0; i < this->Height(); ++i)
-            {
-              int first = firsti [i];
-              int last  = firsti [i+1];
- 
-             for (int j = first; j < last; ++j)
-              {
-                fy(i) += data[j] * fx(colnr[j]);
-              }
+      for (int j = first; j < last; ++j)
+      {
+        fy(i) += data[j] * fx(colnr[j]);
+      }
 
-             fy(i) *= s;
-            }
- 	   }
+      fy(i) *= s;
+    }
+  }
 
-      /////////////////////////////////////////////////////////////////////
-       void MultAdd3 (double s, const BaseVector & x, BaseVector & y) const {
-            static Timer timer("SparseMatrix::MultAdd3");
-            RegionTimer reg (timer);
-            FlatVector<double> fx = x.FV<double> ();
-            FlatVector<double> fy = y.FV<double> ();
+  /////////////////////////////////////////////////////////////////////
+  void MultAdd3 (double s, const BaseVector & x, BaseVector & y) const
+  {
+    static Timer timer("SparseMatrix::MultAdd-Parallel");
+    RegionTimer reg (timer);
+    FlatVector<double> fx = x.FV<double> ();
+    FlatVector<double> fy = y.FV<double> ();
 
 #pragma omp parallel for
-            for (int i = 0; i < this->Height(); ++i)
-            {
-              int first = firsti [i];
-              int last  = firsti [i+1];
+    for (int i = 0; i < this->Height(); ++i)
+    {
+      int first = firsti [i];
+      int last  = firsti [i+1];
 
-              for (int j = first; j < last; ++j)
-              {
-                fy(i) += data[j] * fx(colnr[j]);
-              }
+      for (int j = first; j < last; ++j)
+      {
+        fy(i) += data[j] * fx(colnr[j]);
+      }
 
-              fy(i) *= s;
-            }
-
-
-        }
+      fy(i) *= s;
+    }
+  }
 
 	////////////////////////////////////////////////////////////////////
-	void TranMultAdd1 (double s, const BaseVector & x, BaseVector & y) const {
-            static Timer timer("SparseMatrix::TranMultAdd1");
-            RegionTimer reg (timer);
-            FlatVector<double> fx = x.FV<double> ();
-            FlatVector<double> fy = y.FV<double> ();
-	    
-            for (int i = 0; i < this->Height(); ++i)
-            {
-              int first = firsti [i];
-              int last  = firsti [i+1];
+	void TranMultAdd1 (double s, const BaseVector & x, BaseVector & y) const
+  {
+    static Timer timer("SparseMatrix::TranMultAdd-Sequential");
+    RegionTimer reg (timer);
+    FlatVector<double> fx = x.FV<double> ();
+    FlatVector<double> fy = y.FV<double> ();
 
-              for (int j = first; j < last; ++j)
-              {
-                fy(colnr[j]) += data[j] * fx(i);
-              }
+    for (int i = 0; i < this->Height(); ++i)
+    {
+      int first = firsti [i];
+      int last  = firsti [i+1];
 
-              fy(i) *= s;
-            }
+      for (int j = first; j < last; ++j)
+      {
+        fy(colnr[j]) += data[j] * fx(i);
+      }
 
-
-        }
+      fy(i) *= s;
+    }
+  }
 
 	////////////////////////////////////////////////////////////////////
 	void TranMultAdd2 (double s, const BaseVector & x, BaseVector & y) const
   {
-    static Timer timer("SparseMatrix::TranMultAdd2");
+    static Timer timer("SparseMatrix::TranMultAdd-Parallel-For");
+    RegionTimer reg (timer);
+    FlatVector<double> fx = x.FV<double> ();
+    FlatVector<double> fy = y.FV<double> ();
+
+#pragma omp parallel for
+    for (int i = 0; i < this->Height(); ++i)
+    {
+      int first = firsti [i];
+      int last  = firsti [i+1];
+
+      for (int j = first; j < last; ++j)
+      {
+#pragma omp atomic
+        fy(colnr[j]) += data[j] * fx(i);
+      }
+
+      fy(i) *= s;
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////////
+  void TranMultAdd3 (double s, const BaseVector & x, BaseVector & y) const
+  {
+    static Timer timer("SparseMatrix::TranMultAdd-Coloring");
     RegionTimer reg (timer);
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();

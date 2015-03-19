@@ -31,10 +31,13 @@ int main( int argc, char *argv[] ) {
 
 
 
-    mymat.MultAdd1(1.0, vecx, vecy);
-    mymat.MultAdd2(1.0, vecx, vecy2);
-    mymat.MultAdd3(1.0, vecx, vecy3);
-    mymat.TranMultAdd1(1.0, vecx, vecy4);
-    mymat.TranMultAdd2(1.0, vecx, vecy5);
+    for (int iter = 0; iter < 20; ++iter)
+    {
+      mymat.MultAdd1(1.0, vecx, vecy);
+      mymat.MultAdd2(1.0, vecx, vecy2);
+      mymat.MultAdd3(1.0, vecx, vecy3);
+      mymat.TranMultAdd1(1.0, vecx, vecy4);
+      mymat.TranMultAdd2(1.0, vecx, vecy5);
+    }
 }
 
