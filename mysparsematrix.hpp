@@ -85,7 +85,10 @@ public:
         fy(colnr[j]) += data[j] * fx(i);
       }
 
-      fy(i) *= s;
+    }
+    for (int k = 0; k < this->Width(); ++k)
+    {
+      fy(k) *= s;
     }
   }
 
@@ -97,19 +100,27 @@ public:
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();
 
-#pragma omp parallel for
-    for (int i = 0; i < this->Height(); ++i)
+#pragma omp parallel
     {
-      int first = firsti [i];
-      int last  = firsti [i+1];
-
-      for (int j = first; j < last; ++j)
+#pragma omp for
+      for (int i = 0; i < this->Height(); ++i)
       {
+        int first = firsti [i];
+        int last  = firsti [i+1];
+
+        for (int j = first; j < last; ++j)
+        {
 #pragma omp atomic
-        fy(colnr[j]) += data[j] * fx(i);
+          fy(colnr[j]) += data[j] * fx(i);
+        }
+
       }
 
-      fy(i) *= s;
+#pragma omp for
+      for (int k = 0; k < this->Width(); ++k)
+      {
+        fy(k) *= s;
+      }
     }
   }
 
@@ -145,6 +156,12 @@ public:
             fy(colnr[j]) += data[j] * fx(i);
           }
         }
+      }
+
+#pragma omp for
+      for (int k = 0; k < this->Width(); ++k)
+      {
+        fy(k) *= s;
       }
     }
   }
