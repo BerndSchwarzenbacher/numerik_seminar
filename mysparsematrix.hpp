@@ -121,19 +121,31 @@ public:
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();
 
-#pragma omp parallel for
-    for (int i = 0; i < this->Height(); ++i)
+    int width = this->Width();
+
+#pragma omp parallel
     {
-      int first = firsti [i];
-      int last  = firsti [i+1];
+      int num_threads = omp_get_num_threads();
+      int seperation = ceil(width/num_threads);
 
-      for (int j = first; j < last; ++j)
+#pragma omp for
+      for (int thread_i = 0; thread_i < num_threads; ++thread_i)
       {
-#pragma omp atomic
-        fy(colnr[j]) += data[j] * fx(i);
-      }
+        for (int i = 0; i < this->Height(); ++i)
+        {
+          int first = firsti [i];
+          int last  = firsti [i+1];
 
-      fy(i) *= s;
+          for (int j = first;
+               j < last
+               && (thread_i * seperation) <= colnr[j]
+               && colnr[j] < ((thread_i + 1) * seperation);
+               ++j)
+          {
+            fy(colnr[j]) += data[j] * fx(i);
+          }
+        }
+      }
     }
   }
 

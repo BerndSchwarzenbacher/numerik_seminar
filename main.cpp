@@ -28,16 +28,20 @@ int main( int argc, char *argv[] ) {
     vecy4 = 3.0;
     AutoVector vecy5 = mymat.CreateVector();
     vecy5 = 3.0;
+    AutoVector vecy6 = mymat.CreateVector();
+    vecy5 = 3.0;
 
 
 
-    for (int iter = 0; iter < 20; ++iter)
+    for (int iter = 0; iter < 5; ++iter)
     {
       mymat.MultAdd1(1.0, vecx, vecy);
       mymat.MultAdd2(1.0, vecx, vecy2);
       mymat.MultAdd3(1.0, vecx, vecy3);
       mymat.TranMultAdd1(1.0, vecx, vecy4);
       mymat.TranMultAdd2(1.0, vecx, vecy5);
+      mymat.TranMultAdd3(1.0, vecx, vecy6);
+
     }
 }
 
