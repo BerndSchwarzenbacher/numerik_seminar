@@ -114,10 +114,8 @@ public:
 
       for (int j = first; j < last; ++j)
       {
-        fy(i) += data[j] * fx(colnr[j]);
+        fy(i) += s * data[j] * fx(colnr[j]);
       }
-
-      fy(i) *= s;
     }
   }
 
@@ -138,10 +136,8 @@ public:
 
       for (int j = first; j < last; ++j)
       {
-        fy(i) += data[j] * fx(colnr[j]);
+        fy(i) += s * data[j] * fx(colnr[j]);
       }
-
-      fy(i) *= s;
     }
   }
 
@@ -161,13 +157,9 @@ public:
 
       for (int j = first; j < last; ++j)
       {
-        fy(colnr[j]) += data[j] * fx(i);
+        fy(colnr[j]) += s * data[j] * fx(i);
       }
 
-    }
-    for (int k = 0; k < this->Width(); ++k)
-    {
-      fy(k) *= s;
     }
   }
 
@@ -191,15 +183,9 @@ public:
         for (int j = first; j < last; ++j)
         {
 #pragma omp atomic
-          fy(colnr[j]) += data[j] * fx(i);
+          fy(colnr[j]) += s * data[j] * fx(i);
         }
 
-      }
-
-#pragma omp for
-      for (int k = 0; k < this->Width(); ++k)
-      {
-        fy(k) *= s;
       }
     }
   }
@@ -234,15 +220,9 @@ public:
                && colnr[j] < ((thread_i + 1) * seperation);
                ++j)
           {
-            fy(colnr[j]) += data[j] * fx(i);
+            fy(colnr[j]) += s * data[j] * fx(i);
           }
         }
-      }
-
-#pragma omp for
-      for (int k = 0; k < this->Width(); ++k)
-      {
-        fy(k) *= s;
       }
     }
   }
@@ -269,17 +249,37 @@ public:
 
           for (int j = first; j < last; ++j)
           {
-            fy(colnr[j]) += data[j] * fx(color[i]);
+            fy(colnr[j]) += s * data[j] * fx(color[i]);
           }
         }
-
-#pragma omp wait
       }
 
-#pragma omp for
-      for (int k = 0; k < this->Width(); ++k)
+    }
+  }
+
+	////////////////////////////////////////////////////////////////////
+	void TranMultAdd5 (double s, const BaseVector & x, BaseVector & y) const
+  {
+    static Timer timer("SparseMatrix::TranMultAdd-Parallel-For-Dyn");
+    RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
+    FlatVector<double> fx = x.FV<double> ();
+    FlatVector<double> fy = y.FV<double> ();
+
+#pragma omp parallel
+    {
+#pragma omp for schedule (dynamic, 100)
+      for (int i = 0; i < this->Height(); ++i)
       {
-        fy(k) *= s;
+        int first = firsti [i];
+        int last  = firsti [i+1];
+
+        for (int j = first; j < last; ++j)
+        {
+#pragma omp atomic
+          fy(colnr[j]) += s * data[j] * fx(i);
+        }
+
       }
     }
   }
