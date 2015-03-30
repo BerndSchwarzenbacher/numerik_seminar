@@ -259,19 +259,17 @@ public:
 
 #pragma omp parallel
     {
-      for (int color = 0; color < coloring_.Size(); ++color)
+      for (auto color : coloring_)
       {
-
 #pragma omp for
-        for (int i = 0; i < this->Height(); ++i)
+        for (int i = 0; i < color.Size(); ++i)
         {
-          int first = firsti [i];
-          int last  = firsti [i+1];
+          int first = firsti [color[i]];
+          int last  = firsti [color[i]+1];
 
           for (int j = first; j < last; ++j)
           {
-#pragma omp atomic
-            fy(colnr[j]) += data[j] * fx(i);
+            fy(colnr[j]) += data[j] * fx(color[i]);
           }
         }
 

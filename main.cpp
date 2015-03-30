@@ -43,20 +43,23 @@ int main( int argc, char *argv[] ) {
     mymat.MultAdd3(1.0, vecx, vecy3);
     mymat.TranMultAdd2(1.0, vecx, vecy5);
     mymat.TranMultAdd3(1.0, vecx, vecy6);
-    mymat.TranMultAdd3(1.0, vecx, vecy7);
+    mymat.TranMultAdd4(1.0, vecx, vecy7);
 
     AutoVector diff2= mymat.CreateVector();
     AutoVector diff3= mymat.CreateVector();
     AutoVector diff5= mymat.CreateVector();
     AutoVector diff6= mymat.CreateVector();
+    AutoVector diff7= mymat.CreateVector();
     diff2 = vecy - vecy2;
     diff3 = vecy - vecy3;
     diff5 = vecy1 - vecy5;
     diff6 = vecy1 - vecy6;
+    diff7 = vecy1 - vecy7;
 
     cout << "LNORM2(vecy - vecy2) -sequential  " << L2Norm(diff2) << endl;
     cout << "LNORM2(vecy - vecy3) -parallel  " << L2Norm(diff3) << endl;
     cout << "LNORM2(vecy1 - vecy5) -Trans parallel for static  " << L2Norm(diff5) << endl;
     cout << "LNORM2(vecy1 - vecy6) -Trans seperation  " << L2Norm(diff6) << endl;
+    cout << "LNORM2(vecy1 - vecy7) -Trans coloring  " << L2Norm(diff7) << endl;
 }
 
