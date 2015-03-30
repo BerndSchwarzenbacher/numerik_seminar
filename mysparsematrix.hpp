@@ -6,16 +6,92 @@
 
 using namespace ngsolve;
 
-class MySparseMatrix : public SparseMatrix<double,double,double> {
+class MySparseMatrix : public SparseMatrix<double,double,double>
+{
+private:
+  Table<int> coloring_;
+
 public:
-    MySparseMatrix(const SparseMatrixTM<double> & mat) : SparseMatrix<double,double,double>(mat), SparseMatrixTM<double>(mat) {
-//         your own constructor...
+  MySparseMatrix(const SparseMatrixTM<double> & mat)
+    : SparseMatrix<double,double,double>(mat), SparseMatrixTM<double>(mat)
+  { }
+
+  void Coloring ()
+  {
+    static Timer timer("SparseMatrix::Coloring");
+    RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
+
+    int height = this->Height();
+    int width = this->Width();
+
+    Array<int> row_color(height);
+    row_color = -1;
+
+    int maxcolor = 0;
+    int basecol = 0;
+
+    Array<unsigned int> mask(width);
+
+    int found = 0;
+
+    do
+    {
+      mask = 0;
+
+      for (int row = 0; row < height; ++row)
+      {
+        if (row_color[row] >= 0) continue;
+
+        int first = firsti [row];
+        int last  = firsti [row+1];
+
+        unsigned check = 0;
+        for (int i = first; i < last; ++i)
+          check |= mask[colnr[i]];
+
+        if (check != UINT_MAX) // 0xFFFFFFFF)
+        {
+          found++;
+          unsigned checkbit = 1;
+          int color = basecol;
+          while (check & checkbit)
+          {
+            color++;
+            checkbit *= 2;
+          }
+
+          row_color[row] = color;
+          if (color > maxcolor) maxcolor = color;
+
+          for (int i = first; i < last; ++i)
+            mask[colnr[i]] |= checkbit;
+        }
+      }
+
+      basecol += 8*sizeof(unsigned int); // 32;
     }
+    while (found < height);
+
+    Array<int> cntcol(maxcolor+1);
+    cntcol = 0;
+    for (int row = 0; row < height; ++row)
+      ++cntcol[row_color[row]];
+
+    coloring_ = Table<int>(cntcol);
+
+    cntcol = 0;
+    for (int row = 0; row < height; ++row)
+      coloring_[row_color[row]][cntcol[row_color[row]]++] = row;
+
+    std::cout << "needed " << maxcolor+1 << " colors" << std::endl;
+  }
 
   void MultAdd1 (double s, const BaseVector & x, BaseVector & y) const
   {
     static Timer timer("SparseMatrix::MultAdd-Original");
     RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();
     for (int i = 0; i < this->Height(); ++i)
@@ -27,6 +103,7 @@ public:
   {
     static Timer timer("SparseMatrix::MultAdd-Sequential");
     RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();
 
@@ -49,6 +126,7 @@ public:
   {
     static Timer timer("SparseMatrix::MultAdd-Parallel");
     RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();
 
@@ -72,6 +150,7 @@ public:
   {
     static Timer timer("SparseMatrix::TranMultAdd-Sequential");
     RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();
 
@@ -97,6 +176,7 @@ public:
   {
     static Timer timer("SparseMatrix::TranMultAdd-Parallel-For");
     RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();
 
@@ -127,8 +207,9 @@ public:
   ////////////////////////////////////////////////////////////////////
   void TranMultAdd3 (double s, const BaseVector & x, BaseVector & y) const
   {
-    static Timer timer("SparseMatrix::TranMultAdd-Coloring");
+    static Timer timer("SparseMatrix::TranMultAdd-Seperation");
     RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();
 
@@ -156,6 +237,45 @@ public:
             fy(colnr[j]) += data[j] * fx(i);
           }
         }
+      }
+
+#pragma omp for
+      for (int k = 0; k < this->Width(); ++k)
+      {
+        fy(k) *= s;
+      }
+    }
+  }
+
+  void TranMultAdd4 (double s, const BaseVector & x, BaseVector & y)
+  {
+    static Timer timer("SparseMatrix::TranMultAdd-Coloring");
+    RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
+    FlatVector<double> fx = x.FV<double> ();
+    FlatVector<double> fy = y.FV<double> ();
+
+    Coloring();
+
+#pragma omp parallel
+    {
+      for (int color = 0; color < coloring_.Size(); ++color)
+      {
+
+#pragma omp for
+        for (int i = 0; i < this->Height(); ++i)
+        {
+          int first = firsti [i];
+          int last  = firsti [i+1];
+
+          for (int j = first; j < last; ++j)
+          {
+#pragma omp atomic
+            fy(colnr[j]) += data[j] * fx(i);
+          }
+        }
+
+#pragma omp wait
       }
 
 #pragma omp for

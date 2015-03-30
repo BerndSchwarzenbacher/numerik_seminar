@@ -32,7 +32,9 @@ int main( int argc, char *argv[] ) {
     AutoVector vecy5 = mymat.CreateVector();
     vecy5 = 3.0;
     AutoVector vecy6 = mymat.CreateVector();
-    vecy5 = 3.0;
+    vecy6 = 3.0;
+    AutoVector vecy7 = mymat.CreateVector();
+    vecy7 = 3.0;
 
     mymat.MultAdd1(1.0, vecx, vecy);
     mymat.TranMultAdd1(1.0, vecx, vecy1);
@@ -41,8 +43,8 @@ int main( int argc, char *argv[] ) {
     mymat.MultAdd3(1.0, vecx, vecy3);
     mymat.TranMultAdd2(1.0, vecx, vecy5);
     mymat.TranMultAdd3(1.0, vecx, vecy6);
+    mymat.TranMultAdd3(1.0, vecx, vecy7);
 
-    
     AutoVector diff2= mymat.CreateVector();
     AutoVector diff3= mymat.CreateVector();
     AutoVector diff5= mymat.CreateVector();
