@@ -4,6 +4,8 @@
 
 using namespace ngsolve;
 
+void LoadMatrix(string, SparseMatrix<double> &);
+
 int main( int argc, char *argv[] ) {
     if(argc<2) {
         cout << "usage: " << argv[0] << " matfile" << endl;
@@ -68,4 +70,21 @@ int main( int argc, char *argv[] ) {
     cout << "LNORM2(vecy1 - vecy7) -Trans coloring  " << L2Norm(diff7) << endl;
     cout << "LNORM2(vecy1 - vecy8) -Trans parallel for dynamic 100  " << L2Norm(diff8) << endl;
 }
+
+void LoadMatrix(string filename, SparseMatrix<double> & mat) {
+    BinaryInArchive ar(filename.c_str());
+    Timer bl("binary - load");
+    bl.Start();
+    try {
+        mat.DoArchive(ar);
+    }
+    catch (std::bad_alloc& ba) {
+        std::cerr << "bad_alloc caught: " << ba.what() << '\n';
+    }
+    bl.Stop();
+    cout << mat.Size() << endl;
+    cout << mat.Width() << endl;
+    cout << mat.NZE() << endl;
+}
+
 

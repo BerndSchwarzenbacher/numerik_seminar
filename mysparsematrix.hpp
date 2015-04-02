@@ -301,20 +301,4 @@ public:
 
 };
 
-void LoadMatrix(string filename, SparseMatrix<double> & mat) {
-    BinaryInArchive ar(filename.c_str());
-    Timer bl("binary - load");
-    bl.Start();
-    try {
-        mat.DoArchive(ar);
-    }
-    catch (std::bad_alloc& ba) {
-        std::cerr << "bad_alloc caught: " << ba.what() << '\n';
-    }
-    bl.Stop();
-    cout << mat.Size() << endl;
-    cout << mat.Width() << endl;
-    cout << mat.NZE() << endl;
-}
-
 #endif // MYSPARSEMATRIX_HPP___
