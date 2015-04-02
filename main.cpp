@@ -58,12 +58,13 @@ int main( int argc, char *argv[] ) {
     diff3 = vecy - vecy3;
     diff5 = vecy1 - vecy5;
     diff6 = vecy1 - vecy6;
+    diff7 = vecy1 - vecy7;
     diff8 = vecy1 - vecy8;
 
     cout << "LNORM2(vecy - vecy2) -sequential  " << L2Norm(diff2) << endl;
     cout << "LNORM2(vecy - vecy3) -parallel  " << L2Norm(diff3) << endl;
     cout << "LNORM2(vecy1 - vecy5) -Trans parallel for static  " << L2Norm(diff5) << endl;
-    cout << "LNORM2(vecy1 - vecy6) -Trans seperation  " << L2Norm(diff6) << endl;
+    cout << "LNORM2(vecy1 - vecy6) -Trans balancing  " << L2Norm(diff6) << endl;
     cout << "LNORM2(vecy1 - vecy7) -Trans coloring  " << L2Norm(diff7) << endl;
     cout << "LNORM2(vecy1 - vecy8) -Trans parallel for dynamic 100  " << L2Norm(diff8) << endl;
 }

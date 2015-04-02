@@ -175,8 +175,7 @@ public:
 #pragma omp parallel
     {
 #pragma omp for
-      for (int i = 0; i < this->Height(); ++i)
-      {
+      for (int i = 0; i < this->Height(); ++i) {
         int first = firsti [i];
         int last  = firsti [i+1];
 
@@ -193,33 +192,49 @@ public:
   ////////////////////////////////////////////////////////////////////
   void TranMultAdd3 (double s, const BaseVector & x, BaseVector & y) const
   {
-    static Timer timer("SparseMatrix::TranMultAdd-Seperation");
+    static Timer timer("SparseMatrix::TranMultAdd-Balancing");
     RegionTimer reg (timer);
     timer.AddFlops(this->nze);
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();
 
-    int width = this->Width();
+    int height = this->Height();
 
-#pragma omp parallel
+    Array<int> thread_seperation;
+#pragma omp parallel //shared(thread_seperation)
     {
       int num_threads = omp_get_num_threads();
-      int seperation = ceil(width/num_threads);
+
+#pragma omp single
+      {
+        thread_seperation = Array<int>(num_threads+1);
+        int seperation_step = ceil(this->nze / num_threads);
+
+        int thread_i = 1;
+        for (int row = 0; row < height; ++row)
+        {
+          if (firsti[row] >= thread_i * seperation_step)
+          {
+            thread_seperation[thread_i] = row;
+            ++thread_i;
+          }
+        }
+        thread_seperation[0] = 0;
+        thread_seperation[num_threads] = height;
+      }
 
 #pragma omp for
-      for (int thread_i = 0; thread_i < num_threads; ++thread_i)
+      for (int thread_i = 1; thread_i <= num_threads; ++thread_i)
       {
-        for (int i = 0; i < this->Height(); ++i)
+        for (int i = thread_seperation[thread_i-1];
+             i < thread_seperation[thread_i]; ++i)
         {
           int first = firsti [i];
           int last  = firsti [i+1];
 
-          for (int j = first;
-               j < last
-               && (thread_i * seperation) <= colnr[j]
-               && colnr[j] < ((thread_i + 1) * seperation);
-               ++j)
+          for (int j = first; j < last; ++j)
           {
+#pragma omp atomic
             fy(colnr[j]) += s * data[j] * fx(i);
           }
         }

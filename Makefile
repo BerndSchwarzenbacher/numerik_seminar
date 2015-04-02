@@ -1,10 +1,10 @@
 NGSCXX = ${NETGENDIR}/ngscxx
 FLAGS = -lngstd -lsolve -lngcomp -lngfem -linterface -lngla
 
-all: main.o
+all: main
 
-main.o : main.cpp
+main : main.cpp
 	$(NGSCXX) $? $(FLAGS) -o $@
 
 clean:
-	rm main.o
+	rm main
