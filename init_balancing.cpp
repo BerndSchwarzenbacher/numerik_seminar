@@ -1,5 +1,5 @@
 #include <solve.hpp>
-#include "mysparsematrix_init_par_for.hpp"
+#include "mysparsematrix_init_balancing.hpp"
 
 using namespace ngsolve;
 
@@ -31,7 +31,7 @@ int main( int argc, char *argv[] ) {
     AutoVector diff5= mymat.CreateVector();
     diff5 = vecy1 - vecy5;
 
-    cout << "LNORM2(vecy1 - vecy5) - Trans parallel for static  "
+    cout << "LNORM2(vecy1 - vecy5) - Trans balancing "
          << L2Norm(diff5) << endl;
 }
 
