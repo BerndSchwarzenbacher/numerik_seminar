@@ -11,8 +11,8 @@
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\Q}{\mathbb{Q}}
 
-\title{Seminararbeit aus Numerik oder so}
-\subtitle{Parallel sparse Zeug}
+\title{seminararbeit aus numerik oder so}
+\subtitle{parallel sparse zeug}
 \author{Bernd Schwarzenbacher, Daniel Herold}
 
 \begin{document}
@@ -88,9 +88,10 @@ Most of the matrices are stored in the ccs-format (compressed column storage).
  first and last entry of the row k in the indexvector. One
  iteration through one row ist very easy to provide.
 
+\lstset{language=C++, numbers=left, captionpos=b,
+        caption={Row-iteration of sparsematrices }}
 \begin{lstlisting}
-
-for (int j = firsti[k]; j < last[k]; ++j)
+for (int j = firsti[k]; j < lasti[k]; ++j)
       {...}
 
 \end{lstlisting}
@@ -112,9 +113,10 @@ performances on a single variable at the same time. In the case of a simple
 executed by a single task, there is no limitation in which order which task
  calculates 'his' vectorentry.
 
+\lstset{language=C++, numbers=left, captionpos=b,
+        caption={Matrix vector multiplication with parallel for section}}
 \begin{lstlisting}
-
-  void MultAdd3 (double s, const BaseVector & x, BaseVector & y) const
+void MultAdd3 (double s, const BaseVector & x, BaseVector & y) const
   {
     static Timer timer("SparseMatrix::MultAdd-Parallel");
     RegionTimer reg (timer);
@@ -142,9 +144,10 @@ executed by a single task, there is no limitation in which order which task
 To provide the multiplication of the transposed of a matrix and a given vector
  a sequential script is written in a similar way.
 
+\lstset{language=C++, numbers=left, captionpos=b,
+        caption={Transposed vector multiplication, sequential}}
 \begin{lstlisting}
-
-	void TranMultAdd1 (double s, const BaseVector & x, BaseVector & y) const
+void TranMultAdd1 (double s, const BaseVector & x, BaseVector & y) const
   {
     static Timer timer("SparseMatrix::TranMultAdd-Sequential");
     RegionTimer reg (timer);
@@ -191,7 +194,242 @@ Less entries and a larger matrix result in a higher amount of calculations per
  time where a sequential solving of a matrix with a lot of nonzeroelements is
  faster than any parallel solution.
 
+The atomic version is very straight forward:
+
+\lstset{language=C++, numbers=left, captionpos=b,
+        caption={Transposed vector multiplication, parallel for with atomic}}
+\begin{lstlisting}
+void TranMultAdd2 (double s, const BaseVector & x, BaseVector & y) const
+  {
+    static Timer timer("SparseMatrix::TranMultAdd-Parallel-For");
+    RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
+    FlatVector<double> fx = x.FV<double> ();
+    FlatVector<double> fy = y.FV<double> ();
+
+#pragma omp parallel
+    {
+#pragma omp for
+      for (int i = 0; i < this->Height(); ++i) {
+        int first = firsti [i];
+        int last  = firsti [i+1];
+
+        for (int j = first; j < last; ++j)
+        {
+#pragma omp atomic
+          fy(colnr[j]) += s * data[j] * fx(i);
+        }
+
+      }
+    }
+  }
+
+\end{lstlisting}
+
+The bottleneck of this algorithm is line 19, because every task has to pass this
+line and they lock each other.
+
+The dynamic task partitioning solves another problem of this code. {\em OMP for}
+ splits the for-loop into static iterations for each task. Due to the amount
+ of calculations each task has to perform, some will be finished while others
+are still working. This relates to the specific structur of the matrix. The
+ number of nonzeroelements in euch row can be very different in AMG.
+
+The time that is used for the dynamic assignment can be retrieved by the fair
+partitioning of the tasks. The number 100 demands, that not every single loop
+ will be assigned dynamically but every 100 of them.
+
+\lstset{language=C++, numbers=none, captionpos=b,
+        caption={Dynamic for loop}}
+\begin{lstlisting}
+...
+#pragma omp for schedule (dynamic, 100)
+...
+\end{lstlisting}
+
+The balancing option performs this action in a similar way, but not during the 
+for-loop itself but first of it. The time for the calculation of each line
+depends (as mentioned) on the number of nonzeroelements in this row. With a 
+simple algorithm it is possible to  determine this number for each row of the 
+ and split the loop due to this partitioning.
+
+\lstset{language=C++, numbers=left, captionpos=b,
+        caption={Transposed vector multiplication, static balancing}}
+\begin{lstlisting}
+void TranMultAdd3 (double s, const BaseVector & x, BaseVector & y) const
+  {
+    static Timer timer("SparseMatrix::TranMultAdd-Balancing");
+    RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
+    FlatVector<double> fx = x.FV<double> ();
+    FlatVector<double> fy = y.FV<double> ();
+
+    int height = this->Height();
+
+    Array<int> thread_seperation;
+#pragma omp parallel //shared(thread_seperation)
+    {
+      int num_threads = omp_get_num_threads();
+
+#pragma omp single
+      {
+        thread_seperation = Array<int>(num_threads+1);
+        int seperation_step = ceil(this->nze / num_threads);
+
+        int thread_i = 1;
+        for (int row = 0; row < height; ++row)
+        {
+          if (firsti[row] >= thread_i * seperation_step)
+          {
+            thread_seperation[thread_i] = row;
+            ++thread_i;
+          }
+        }
+        thread_seperation[0] = 0;
+        thread_seperation[num_threads] = height;
+      }
+
+#pragma omp for
+      for (int thread_i = 1; thread_i <= num_threads; ++thread_i)
+      {
+        for (int i = thread_seperation[thread_i-1];
+             i < thread_seperation[thread_i]; ++i)
+        {
+          int first = firsti [i];
+          int last  = firsti [i+1];
+
+          for (int j = first; j < last; ++j)
+          {
+#pragma omp atomic
+            fy(colnr[j]) += s * data[j] * fx(i);
+          }
+        }
+      }
+    }
+  }
+
+\end{lstlisting}
+
+Every method still has the same problem with the atomic operation in its
+essential part. To avoid this, we have to make sure that multiple tasks do not
+write on the same entry of the outcoming vector at the same time. To solve this,
+ we will "color" each row of the matrix. Two group of rows will get the same 
+color, if they do not write on the same entry. This is equivalent to not having
+any columns with nonzeroelements in common. With this information we can iterate through the different colors sequential but parallelize every loop through
+ a group of same-colored-rows, because they will not interfere.
+
+\lstset{language=C++, numbers=left, captionpos=b,
+        caption={Coloring of a matrix for transposed vector multiplication}}
+\begin{lstlisting}
+void Coloring ()
+  {
+    static Timer timer("SparseMatrix::Coloring");
+    RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
+
+    int height = this->Height();
+    int width = this->Width();
+
+    Array<int> row_color(height);
+    row_color = -1;
+
+    int maxcolor = 0;
+    int basecol = 0;
+
+    Array<unsigned int> mask(width);
+
+    int found = 0;
+
+    do
+    {
+      mask = 0;
+
+      for (int row = 0; row < height; ++row)
+      {
+        if (row_color[row] >= 0) continue;
+
+        int first = firsti [row];
+        int last  = firsti [row+1];
+
+        unsigned check = 0;
+        for (int i = first; i < last; ++i)
+          check |= mask[colnr[i]];
+
+        if (check != UINT_MAX) // 0xFFFFFFFF)
+        {
+          found++;
+          unsigned checkbit = 1;
+          int color = basecol;
+          while (check & checkbit)
+          {
+            color++;
+            checkbit *= 2;
+          }
+
+          row_color[row] = color;
+          if (color > maxcolor) maxcolor = color;
+
+          for (int i = first; i < last; ++i)
+            mask[colnr[i]] |= checkbit;
+        }
+      }
+
+      basecol += 8*sizeof(unsigned int); // 32;
+    }
+    while (found < height);
+
+    Array<int> cntcol(maxcolor+1);
+    cntcol = 0;
+    for (int row = 0; row < height; ++row)
+      ++cntcol[row_color[row]];
+
+    coloring_ = table<int>(cntcol);
+
+    cntcol = 0;
+    for (int row = 0; row < height; ++row)
+      coloring_[row_color[row]][cntcol[row_color[row]]++] = row;
+
+    std::cout << "needed " << maxcolor+1 << " colors" << std::endl;
+  }
+
+\end{lstlisting}
+
+\lstset{language=c++, numbers=left, captionpos=b,
+        caption={transposed vector multiplication by coloring a matrix}}
+\begin{lstlisting}
+void TranMultAdd4 (double s, const BaseVector & x, BaseVector & y)
+  {
+    static Timer timer("SparseMatrix::TranMultAdd-Coloring");
+    RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
+    FlatVector<double> fx = x.FV<double> ();
+    FlatVector<double> fy = y.FV<double> ();
+
+    Coloring();
+
+#pragma omp parallel
+    {
+      for (auto color : coloring_)
+      {
+#pragma omp for
+        for (int i = 0; i < color.Size(); ++i)
+        {
+          int first = firsti [color[i]];
+          int last  = firsti [color[i]+1];
+
+          for (int j = first; j < last; ++j)
+          {
+            fy(colnr[j]) += s * data[j] * fx(color[i]);
+          }
+        }
+      }
+
+    }
+  }
+
+
+\end{lstlisting}
+
 
 
 \end{document}
-
