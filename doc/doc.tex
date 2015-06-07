@@ -23,26 +23,34 @@
 
 \pagebreak
 
-Preconditioning is used in the CG-Approximation Method. The goal of the
-AMG-Preconditioner is to combine severel bad preconditioners to
-get a good preconditioner. To achieve this, the original Matrix is coarsened
-recursively to smaller matrices. Weighing the relative strength of the
-connecting vertices through the matrix entries, a prolongation matrix is
-computed to project the fine matrix on the next coarser space. On the coarser
-levels, big errors in the solution are faster corrected.
-In every iteration Gauß-Seidel preconditioners are used on each level back and
-forth. There lies a great potential to save time.
-The normal matrix vector multiplication is easely programmed parallel. Due to
-the sparse data structure it's although harder to make the transposed matrix
-vector multiplication parallel.
+\section{Motivation}
 
+To solve big systems of linear equations the conjugate gradient method is the
+most used iterative method.
+For faster convergence speed the condition of the problem is
+adjusted with a so called preconditioner.
+The original problem $b-Ax=0$ is substituted by the preconditioned problem
+$C^{-1} (b-Ax) = 0$ with preconditioner $C$.
+A simple choice is the Gauss-Seidel preconditioner.
+
+The goal of the AMG (Algebraic Multi Grid) preconditioner is to combine several
+bad preconditioners to get a good preconditioner. To achieve this, the original
+matrix is coarsened recursively to smaller matrices (hence Multi Grid).
+Weighing the relative strength of the connecting vertices, a prolongation matrix
+is computed to project the problem on a coarser space. To determine which
+vertices should collapse, only the information in the system matrix is needed
+(hence Algebraic).
+On the coarser levels, big errors in the solution are faster corrected.
+In each iteration Gauß-Seidel preconditioners are used.
+Here lies a great potential to save time.
+ 
 On the coarsest level the problem is solved directly with the inverse matrix.
-(Line 7-11).
-Otherwise we do a Gauß-Seidel smoothing forward in line 18.
+(Line 4-8).
+Otherwise we do a Gauß-Seidel smoothing forward in line 15.
 And if there is a coarser level, we calculate the current residuum and
-prolongate it to the coarser level (line 23). Here the transposed
+prolongate it to the coarser level (line 20). Here the transposed
 matrix vector multiplication is used. Then the same routine is called
-recursevily at line 25 with the coarse residuum and the coarse solution. The
+recursevily at line 22 with the coarse residuum and the coarse solution. The
 coarse solution then is added back onto the fine solution.
 
 \lstset{language=C++, numbers=left, captionpos=b,
@@ -51,9 +59,6 @@ coarse solution then is added back onto the fine solution.
 void my_AMG_H1 :: Mult (const ngla::BaseVector & b,
                         ngla::BaseVector & x) const
 {
-  static Timer timer("H1-AMG::Mult");
-  RegionTimer reg (timer);
-
   if (inv)
   {
     x = (*inv) * b;
