@@ -152,7 +152,8 @@ To provide the multiplication of the transposed of a matrix and a given vector
 \lstset{language=C++, numbers=left, captionpos=b,
         caption={Transposed vector multiplication, sequential}}
 \begin{lstlisting}
-void TranMultAdd1 (double s, const BaseVector & x, BaseVector & y) const
+void TranMultAdd1 (double s, const BaseVector & x,
+                                    BaseVector & y) const
   {
     static Timer timer("SparseMatrix::TranMultAdd-Sequential");
     RegionTimer reg (timer);
@@ -204,7 +205,8 @@ The atomic version is very straight forward:
 \lstset{language=C++, numbers=left, captionpos=b,
         caption={Transposed vector multiplication, parallel for with atomic}}
 \begin{lstlisting}
-void TranMultAdd2 (double s, const BaseVector & x, BaseVector & y) const
+void TranMultAdd2 (double s, const BaseVector & x,
+                                  BaseVector & y) const
   {
     static Timer timer("SparseMatrix::TranMultAdd-Parallel-For");
     RegionTimer reg (timer);
@@ -261,7 +263,8 @@ simple algorithm it is possible to  determine this number for each row of the
 \lstset{language=C++, numbers=left, captionpos=b,
         caption={Transposed vector multiplication, static balancing}}
 \begin{lstlisting}
-void TranMultAdd3 (double s, const BaseVector & x, BaseVector & y) const
+void TranMultAdd3 (double s, const BaseVector & x,
+                                  BaseVector & y) const
   {
     static Timer timer("SparseMatrix::TranMultAdd-Balancing");
     RegionTimer reg (timer);
@@ -436,21 +439,40 @@ void TranMultAdd4 (double s, const BaseVector & x, BaseVector & y)
 \end{lstlisting}
 
 \section{Gauß-Seidel-Method}
-The Gauß-Seidel-Method is similar to the Jacobi-Method. The difference is,
-that it also uses the new information optioned by previous computations of
-entries of the solution vector.
-$$ x_{j} = \frac{1}{a_{jj}} (b_{j} - A_{j} x) = \frac{1}{a_{jj}} (b_{j} - $$
-Where $A_{j}$ denotes the j-th Row of the matrix $A$.
+To solve a linear equation system, we use a special preconditioner, the 
+Gauß-Seidel-Method. This is similar to the Jacobi-Method, where computing
+ the vector $Ax$ is necessary. The difference is,
+that we also use the new information optioned by previous computations of
+entries of the solution vector. In particular a new entry is given by
+$$ x_j^{new} = \frac{1}{A_{jj}} (b_{j} - \sum_{k \in K^{new}}A_{jk} x_k^{new}
+ - \sum_{k \in K^{old}}A_{jk} x_k^{old})$$
+for $j = 1..n$. $K^{new}$ denotes the set of indices of new calculated entries
+ of $x$, where $K^{old}$ denotes the old entries.
 
+To perform a parallel algorithm, we have to make sure, that parallel 
+running tasks do not have to use entries of $x$ which are computed by other
+tasks at the same time. The order of computed entries is arbitrary as long as
+the method GSSmoothBack is able to compute them in the reverse order.
+ 
 In the end we implemented a coloring alghorithm.
-Similar to the coloring method of matrix vector multiplication,
-we compute entries of the solution vector parallel,
-when this entries don't influence each other.
-Because the matrix is symmetric it is sufficient to look at
-$A_{ij}$ or $A_{ji}$, if this matrix entrie is zero,
-then the two indices can be in the same color.
-To optain symmetrie we cycle through the colors in reverse order, in
-GSSmoothBack.
+Similar to the transposed matrix vector multiplication we mark the rows which
+can run parallel without influencing them. This works as following:
 
+At calculating the product $A_jx$ which modifies the entry $x_j$ (where $A_j$ 
+denotes the j-th row of the matrix $A$) every entry $x_k$ is used, where
+ $A_{jk} \neq 0$. According to this, every row $A_j$, which should be added 
+to an existing color has to have zeroelements on the positions $A_{jk}$ for 
+all $k$ indices of current rows of this color. 
 
+Instead of testing all remaining rows for this property, we use that $A$ is
+ symmetric: $A_{kj} = 0 \Leftrightarrow A_{jk} = 0$. We only have to look 
+at the specific row we added to one color to determine which rows can also
+ relate to it.
+
+The main advance of this method is, that the coloring process has to be
+ done only once, whereas it is used by GSSmooth and GSSmoothBack as well.
+
+As in the motivation mentioned, GSSmooth is called with matrices getting
+ smaller and GSSmoothBack in reverse order on matrices getting larger.
+ The improve of speed is shown in GRAFIK.
 \end{document}
