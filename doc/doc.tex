@@ -1,17 +1,12 @@
-
 \documentclass[a4paper,11pt]{article}
 \usepackage{fullpage}
 \usepackage[utf8]{inputenc}
-\usepackage[english]{babel} 
+\usepackage[english]{babel}
 \usepackage{amssymb}
 \usepackage{amsmath}
-\usepackage{enumerate}
 \usepackage{amsthm}
-\usepackage{color}
-\usepackage{moreverb}
 \usepackage{titling}
-\usepackage{graphicx}
-\usepackage{epstopdf}
+\usepackage{listing}
 
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\N}{\mathbb{N}}
@@ -35,4 +30,49 @@
 
 \pagebreak
 
+
+The goal of the AMG-Preconditioner is to combine severel bad preconditioners to
+get a good preconditioner.
+In every iteration Gauß-Seidel preconditioners are used on each level back and
+forth. There lies a great potential to save time.
+The normal matrix vector multiplication is easely programmed parallel. Due to
+the sparse data structure it's although harder to make the transposed matrix
+vector multiplication parallel.
+
+\begin{lstlisting}
+
+  void my_AMG_H1 :: Mult (const ngla::BaseVector & b,
+                          ngla::BaseVector & x) const
+  {
+    static Timer timer("H1-AMG::Mult");
+    RegionTimer reg (timer);
+
+    if (inv)
+    {
+      x = (*inv) * b;
+      return;
+    }
+
+    auto residuum = pmat->CreateVector();
+    auto coarse_x = coarsemat->CreateVector();
+    auto coarse_residuum = coarsemat->CreateVector();
+
+    x = 0;
+    jacobi->GSSmooth (x, b);
+
+    if (recAMG)
+    {
+      residuum = b - (*pmat) * x;
+      coarse_residuum = ngla::Transpose (*prol) * residuum;
+
+      recAMG->Mult(coarse_residuum, coarse_x);
+
+      x += (*prol) * coarse_x;
+    }
+
+    jacobi->GSSmoothBack (x, b);
+  }
+\end{lstlisting} 
+
 \end{document}
+
