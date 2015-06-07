@@ -4,6 +4,7 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{amsthm}
+\usepackage{listings}
 
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\N}{\mathbb{N}}
@@ -64,6 +65,118 @@ vector multiplication parallel.
     %jacobi->GSSmoothBack (x, b);
   %}
 %\end{lstlisting} 
+
+\section{Sparsematrices}
+
+Most of the matrices are stored in the ccs-format (compressed column storage).
+ The commands {\em firsti[k]} and {\em lasti[k]} provide the position of the
+ first and last entry of the row k in the indexvector. One
+ iteration through one row ist very easy to provide.
+
+\begin{lstlisting}
+
+for (int j = firsti[k]; j < last[k]; ++j)
+      {...}
+
+\end{lstlisting}
+
+The difficulty with sparsematrices is the iteration among any other order as 
+the next section will show.
+
+\section{Matrix vector multiplication}
+
+The multiplication of a sparsematrix and a given vector is very simple. 
+The entry k of the outcoming vector is given by the summation of the products 
+of the matrixentries in the row k with the entries of the vector. In other 
+words one entry of the outcoming vector depends only on one row of the matrix 
+and vice versa.
+
+One of the difficulties of parallelization is given by multiple writing 
+performances on a single variable at the same time. In the case of a simple
+ matrix vector multiplication this is no big deal to handle: Each row has to be
+executed by a single task, there is no limitation in which order which task
+ calculates 'his' vectorentry.
+
+\begin{lstlisting}
+
+  void MultAdd3 (double s, const BaseVector & x, BaseVector & y) const
+  {
+    static Timer timer("SparseMatrix::MultAdd-Parallel");
+    RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
+    FlatVector<double> fx = x.FV<double> ();
+    FlatVector<double> fy = y.FV<double> ();
+
+#pragma omp parallel for
+    for (int i = 0; i < this->Height(); ++i)
+    {
+      int first = firsti [i];
+      int last  = firsti [i+1];
+
+      for (int j = first; j < last; ++j)
+      {
+        fy(i) += s * data[j] * fx(colnr[j]);
+      }
+    }
+  }
+
+\end{lstlisting}
+
+\subsection{Transposed matrix vector multiplication}
+
+To provide the multiplication of the transposed of a matrix and a given vector
+ a sequential script is written in a similar way.
+
+\begin{lstlisting}
+
+	void TranMultAdd1 (double s, const BaseVector & x, BaseVector & y) const
+  {
+    static Timer timer("SparseMatrix::TranMultAdd-Sequential");
+    RegionTimer reg (timer);
+    timer.AddFlops(this->nze);
+    FlatVector<double> fx = x.FV<double> ();
+    FlatVector<double> fy = y.FV<double> ();
+
+    for (int i = 0; i < this->Height(); ++i)
+    {
+      int first = firsti [i];
+      int last  = firsti [i+1];
+
+      for (int j = first; j < last; ++j)
+      {
+        fy(colnr[j]) += s * data[j] * fx(i);
+      }
+
+    }
+  }
+
+
+\end{lstlisting}
+
+The difference is the dependency of a single outcoming entry. It is calculated
+ by the entries of a column of the matrix - but because of the storage it is not
+possible to iterate through one column in an efficient way. If the algorithm 
+has to iterate through one line of the matrices, simple parallelization would
+probably cause issues in some outcoming entries due to multiple writing
+performances at the same time. 
+
+Some ideas to solve this problem are:
+
+\begin{itemize}
+
+\item atomic writing process (easy to program, but very inefficient)
+\item atomic writing process with dynamic task partioning
+\item atomic writing process with static thread seperation
+\item matrix coloring without any atomic processes
+
+\end{itemize} 
+
+All of this solutions efficiencies depend on the number of entries in the matrix.
+Less entries and a larger matrix result in a higher amount of calculations per
+ time where a sequential solving of a matrix with a lot of nonzeroelements is
+ faster than any parallel solution.
+
+
 
 \end{document}
 
