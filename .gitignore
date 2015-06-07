@@ -15,4 +15,8 @@
 *.out
 *.prof
 *.ini
-
+*.pdf
+*.toc
+*.aux
+*.log
+*.synctex.gz
