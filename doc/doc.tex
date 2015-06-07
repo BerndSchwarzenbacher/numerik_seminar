@@ -1,4 +1,5 @@
 \documentclass[a4paper,11pt]{scrartcl}
+\usepackage{fullpage}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{amssymb}
@@ -22,9 +23,13 @@
 
 \pagebreak
 
-
-The goal of the AMG-Preconditioner is to combine severel bad preconditioners to
-get a good preconditioner.
+Preconditioning is used in the CG-Approximation Method. The goal of the
+AMG-Preconditioner is to combine severel bad preconditioners to
+get a good preconditioner. To achieve this, the original Matrix is coarsened
+recursively to smaller matrices. Weighing the relative strength of the
+connecting vertices through the matrix entries, a prolongation matrix is
+computed to project the fine matrix on the next coarser space. On the coarser
+levels, big errors in the solution are faster corrected.
 In every iteration Gauß-Seidel preconditioners are used on each level back and
 forth. There lies a great potential to save time.
 The normal matrix vector multiplication is easely programmed parallel. Due to
@@ -32,7 +37,7 @@ the sparse data structure it's although harder to make the transposed matrix
 vector multiplication parallel.
 
 On the coarsest level the problem is solved directly with the inverse matrix.
-(Line 7-11).  
+(Line 7-11).
 Otherwise we do a Gauß-Seidel smoothing forward in line 18.
 And if there is a coarser level, we calculate the current residuum and
 prolongate it to the coarser level (line 23). Here the transposed
