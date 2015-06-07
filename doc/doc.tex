@@ -43,7 +43,7 @@ vertices should collapse, only the information in the system matrix is needed
 On the coarser levels, big errors in the solution are faster corrected.
 In each iteration Gauß-Seidel preconditioners are used.
 Here lies a great potential to save time.
- 
+
 On the coarsest level the problem is solved directly with the inverse matrix.
 (Line 4-8).
 Otherwise we do a Gauß-Seidel smoothing forward in line 15.
@@ -101,18 +101,18 @@ for (int j = firsti[k]; j < lasti[k]; ++j)
 
 \end{lstlisting}
 
-The difficulty with sparsematrices is the iteration among any other order as 
+The difficulty with sparsematrices is the iteration among any other order as
 the next section will show.
 
 \section{Matrix vector multiplication}
 
-The multiplication of a sparsematrix and a given vector is very simple. 
-The entry k of the outcoming vector is given by the summation of the products 
-of the matrixentries in the row k with the entries of the vector. In other 
-words one entry of the outcoming vector depends only on one row of the matrix 
+The multiplication of a sparsematrix and a given vector is very simple.
+The entry k of the outcoming vector is given by the summation of the products
+of the matrixentries in the row k with the entries of the vector. In other
+words one entry of the outcoming vector depends only on one row of the matrix
 and vice versa.
 
-One of the difficulties of parallelization is given by multiple writing 
+One of the difficulties of parallelization is given by multiple writing
 performances on a single variable at the same time. In the case of a simple
  matrix vector multiplication this is no big deal to handle: Each row has to be
 executed by a single task, there is no limitation in which order which task
@@ -178,10 +178,10 @@ void TranMultAdd1 (double s, const BaseVector & x, BaseVector & y) const
 
 The difference is the dependency of a single outcoming entry. It is calculated
  by the entries of a column of the matrix - but because of the storage it is not
-possible to iterate through one column in an efficient way. If the algorithm 
+possible to iterate through one column in an efficient way. If the algorithm
 has to iterate through one line of the matrices, simple parallelization would
 probably cause issues in some outcoming entries due to multiple writing
-performances at the same time. 
+performances at the same time.
 
 Some ideas to solve this problem are:
 
@@ -192,7 +192,7 @@ Some ideas to solve this problem are:
 \item atomic writing process with static thread seperation
 \item matrix coloring without any atomic processes
 
-\end{itemize} 
+\end{itemize}
 
 All of this solutions efficiencies depend on the number of entries in the matrix.
 Less entries and a larger matrix result in a higher amount of calculations per
@@ -252,10 +252,10 @@ partitioning of the tasks. The number 100 demands, that not every single loop
 ...
 \end{lstlisting}
 
-The balancing option performs this action in a similar way, but not during the 
+The balancing option performs this action in a similar way, but not during the
 for-loop itself but first of it. The time for the calculation of each line
-depends (as mentioned) on the number of nonzeroelements in this row. With a 
-simple algorithm it is possible to  determine this number for each row of the 
+depends (as mentioned) on the number of nonzeroelements in this row. With a
+simple algorithm it is possible to  determine this number for each row of the
  and split the loop due to this partitioning.
 
 \lstset{language=C++, numbers=left, captionpos=b,
@@ -318,7 +318,7 @@ void TranMultAdd3 (double s, const BaseVector & x, BaseVector & y) const
 Every method still has the same problem with the atomic operation in its
 essential part. To avoid this, we have to make sure that multiple tasks do not
 write on the same entry of the outcoming vector at the same time. To solve this,
- we will "color" each row of the matrix. Two group of rows will get the same 
+ we will "color" each row of the matrix. Two group of rows will get the same
 color, if they do not write on the same entry. This is equivalent to not having
 any columns with nonzeroelements in common. With this information we can iterate through the different colors sequential but parallelize every loop through
  a group of same-colored-rows, because they will not interfere.
@@ -435,6 +435,22 @@ void TranMultAdd4 (double s, const BaseVector & x, BaseVector & y)
 
 \end{lstlisting}
 
+\section{Gauß-Seidel-Method}
+The Gauß-Seidel-Method is similar to the Jacobi-Method. The difference is,
+that it also uses the new information optioned by previous computations of
+entries of the solution vector.
+$$ x_{j} = \frac{1}{a_{jj}} (b_{j} - A_{j} x) = \frac{1}{a_{jj}} (b_{j} - $$
+Where $A_{j}$ denotes the j-th Row of the matrix $A$.
+
+In the end we implemented a coloring alghorithm.
+Similar to the coloring method of matrix vector multiplication,
+we compute entries of the solution vector parallel,
+when this entries don't influence each other.
+Because the matrix is symmetric it is sufficient to look at
+$A_{ij}$ or $A_{ji}$, if this matrix entrie is zero,
+then the two indices can be in the same color.
+To optain symmetrie we cycle through the colors in reverse order, in
+GSSmoothBack.
 
 
 \end{document}
