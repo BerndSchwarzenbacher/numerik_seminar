@@ -10,7 +10,7 @@
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\Q}{\mathbb{Q}}
 
-\title{Seminarberbeit aus Numerik oder so}
+\title{Seminararbeit aus Numerik oder so}
 \subtitle{Parallel sparse Zeug}
 \author{Bernd Schwarzenbacher, Daniel Herold}
 
@@ -31,40 +31,50 @@ The normal matrix vector multiplication is easely programmed parallel. Due to
 the sparse data structure it's although harder to make the transposed matrix
 vector multiplication parallel.
 
-%\begin{lstlisting}
+On the coarsest level the problem is solved directly with the inverse matrix.
+(Line 7-11).  
+Otherwise we do a Gauß-Seidel smoothing forward in line 18.
+And if there is a coarser level, we calculate the current residuum and
+prolongate it to the coarser level (line 23). Here the transposed
+matrix vector multiplication is used. Then the same routine is called
+recursevily at line 25 with the coarse residuum and the coarse solution. The
+coarse solution then is added back onto the fine solution.
 
-  %void my_AMG_H1 :: Mult (const ngla::BaseVector & b,
-                          %ngla::BaseVector & x) const
-  %{
-    %static Timer timer("H1-AMG::Mult");
-    %RegionTimer reg (timer);
+\lstset{language=C++, numbers=left, captionpos=b,
+        caption={Multiplication Method of the AMG-Preconditioner}}
+\begin{lstlisting}
+void my_AMG_H1 :: Mult (const ngla::BaseVector & b,
+                        ngla::BaseVector & x) const
+{
+  static Timer timer("H1-AMG::Mult");
+  RegionTimer reg (timer);
 
-    %if (inv)
-    %{
-      %x = (*inv) * b;
-      %return;
-    %}
+  if (inv)
+  {
+    x = (*inv) * b;
+    return;
+  }
 
-    %auto residuum = pmat->CreateVector();
-    %auto coarse_x = coarsemat->CreateVector();
-    %auto coarse_residuum = coarsemat->CreateVector();
+  auto residuum = pmat->CreateVector();
+  auto coarse_x = coarsemat->CreateVector();
+  auto coarse_residuum = coarsemat->CreateVector();
 
-    %x = 0;
-    %jacobi->GSSmooth (x, b);
+  x = 0;
+  jacobi->GSSmooth (x, b);
 
-    %if (recAMG)
-    %{
-      %residuum = b - (*pmat) * x;
-      %coarse_residuum = ngla::Transpose (*prol) * residuum;
+  if (recAMG)
+  {
+    residuum = b - (*pmat) * x;
+    coarse_residuum = ngla::Transpose (*prol) * residuum;
 
-      %recAMG->Mult(coarse_residuum, coarse_x);
+    recAMG->Mult(coarse_residuum, coarse_x);
 
-      %x += (*prol) * coarse_x;
-    %}
+    x += (*prol) * coarse_x;
+  }
 
-    %jacobi->GSSmoothBack (x, b);
-  %}
-%\end{lstlisting} 
+  jacobi->GSSmoothBack (x, b);
+}
+\end{lstlisting}
 
 \section{Sparsematrices}
 
