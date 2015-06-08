@@ -14,7 +14,7 @@
 *.vol
 *.in2d
 *.out
-*.prof
+#*.prof
 *.ini
 *.pdf
 *.toc

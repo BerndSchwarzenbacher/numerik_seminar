@@ -1,0 +1,102 @@
+job 999898 calls        1, time 1.3149 sec AMG - projection time
+job 999899 calls        1, time 5.7424 sec AMG - Coarsening time
+job 999900 calls        1, time 0.1119 sec AMG - projection time
+job 999901 calls        1, time 0.4062 sec AMG - Coarsening time
+job 999902 calls        1, time 0.0111 sec AMG - projection time
+job 999903 calls        1, time 0.0339 sec AMG - Coarsening time
+job 999904 calls        1, time 0.0013 sec AMG - projection time
+job 999905 calls        1, time 0.0031 sec AMG - Coarsening time
+job 999906 calls       10, time 0.0329 sec EBE-matrix::MultAdd
+job 999907 calls        5, time 0.7589 sec Compute Internal
+job 999908 calls        5, time 7.6137 sec CG solver
+job 999909 calls        5, time 0.0167 sec EBE-matrix<double>::MultTransAdd
+job 999910 calls        5, time 7.6315 sec Equation solving
+job 999911 calls      510, time 0.1366 sec, MFlops = 731.85 BaseVector::Add
+job 999912 calls      364, time 0.0668 sec, MFlops = 1034.33 BaseVector::Scale
+job 999913 calls      440, time 0.1233 sec, MFlops = 690.63 BaseVector::InnerProduct (taskhandler)
+job 999914 calls     1759, time 7.1525 sec JacobiPrecondSymmetric::GSSmoothBack
+job 999915 calls     1759, time 0.0008 sec SparseMatrix::MultAdd - copy source vector (taskhandler)
+job 999916 calls     1759, time 0.4552 sec SparseMatrix::MultAdd (taskhandler) - finish
+job 999917 calls     1759, time 0.4542 sec SparseMatrix::MultAdd (taskhandler) - mult
+job 999918 calls     1759, time 0.4561 sec, MFlops = 172.07 SparseMatrix::MultAdd (taskhandler)
+job 999919 calls     1759, time 0.0014 sec SparseMatrix::MultAdd (taskhandler) - init
+job 999920 calls      225, time 0.0047 sec SparseCholesky<d,d,d>::MultAdd fac2
+job 999921 calls      225, time 0.0065 sec SparseCholesky<d,d,d>::MultAdd fac1
+job 999922 calls      225, time 0.0121 sec, MFlops =  62.44 SparseCholesky<d,d,d>::MultAdd
+job 999923 calls     1759, time 0.4713 sec, MFlops = 166.52 SparseMatrix::MultTransAdd
+job 999924 calls     1984, time 5.7728 sec, MFlops = 349.69 SparseMatrixSymmetric::MultAdd
+job 999925 calls     2052, time 0.1809 sec, MFlops = 763.84 BaseVector::Set
+job 999926 calls     1759, time 5.2215 sec JacobiPrecondSymmetric::GSSmooth
+job 999927 calls     1984, time 33.4371 sec H1-AMG::Mult
+job 999928 calls        0, time 0.0000 sec SparseCholesky::Factor - C
+job 999929 calls        0, time 0.0000 sec SparseCholesky::Factor - B
+job 999930 calls        5, time 0.0003 sec SparseCholesky::Factor
+job 999931 calls        0, time 0.0000 sec MDO::EliminateMaster 4 (calcdeg)
+job 999932 calls        0, time 0.0000 sec MDO::EliminateMaster 3
+job 999933 calls        0, time 0.0000 sec MDO::EliminateMaster 2c
+job 999934 calls        0, time 0.0000 sec MDO::EliminateMaster 2b
+job 999935 calls        0, time 0.0000 sec MDO::EliminateMaster 2a
+job 999936 calls        0, time 0.0000 sec MDO::EliminateMaster 2
+job 999937 calls        0, time 0.0000 sec MDO::EliminateMaster 1
+job 999938 calls        0, time 0.0000 sec MDO::EliminateMaster
+job 999939 calls        5, time 0.0011 sec MinimumDegreeOrdering::Order
+job 999940 calls        5, time 0.0001 sec SparseCholesky - fill factor
+job 999941 calls        5, time 0.0003 sec SparseCholesky - allocate
+job 999942 calls        5, time 0.0020 sec SparseCholesky - total
+job 999943 calls       33, time 0.6380 sec sparsematrix - restrict, compute matrix
+job 999944 calls       33, time 0.2386 sec sparsematrix - restrict, build matrix4
+job 999945 calls       33, time 0.0808 sec sparsematrix - restrict, build matrix3
+job 999946 calls       33, time 0.1263 sec sparsematrix - restrict, build matrix2
+job 999947 calls       33, time 0.3109 sec sparsematrix - restrict, build matrix1
+job 999948 calls       33, time 0.7568 sec sparsematrix - restrict, build matrix
+job 999949 calls       33, time 1.3993 sec sparsematrix - restrict
+job 999950 calls        1, time 0.0003 sec AMG - projection time
+job 999951 calls        1, time 0.0003 sec AMG - Coarsening time
+job 999952 calls        0, time 0.0000 sec MyAMG::AddElementMatrix - 3
+job 999953 calls        0, time 0.0000 sec MyAMG::AddElementMatrix - 2c
+job 999954 calls        0, time 0.0000 sec MyAMG::AddElementMatrix - 2b
+job 999955 calls        0, time 0.0000 sec MyAMG::AddElementMatrix - 2a
+job 999956 calls        0, time 0.0000 sec MyAMG::AddElementMatrix - 2
+job 999957 calls  3654094, time 3.5629 sec MyAMG::AddElementMatrix - 1
+job 999958 calls        0, time 0.0000 sec MyAMG::AddElementMatrix - add weight
+job 999959 calls        0, time 0.0000 sec MyAMG::AddElementMatrix - evp
+job 999960 calls  3654094, time 16.7794 sec MyAMG::AddElementMatrix
+job 999961 calls  7308188, time 4.4860 sec SparseMatrixSymmetric::AddElementMatrix
+job 999962 calls 14155344, time 7.5760 sec Element matrix integration
+job 999963 calls       10, time 0.0128 sec, MFlops = 754.12 SparseMatrix::SetZero (taskhandler)
+job 999964 calls        0, time 0.0000 sec Matrix assembling bound - 3
+job 999965 calls        0, time 0.0000 sec Matrix assembling bound - 2
+job 999966 calls        0, time 0.0000 sec Matrix assembling bound - 1
+job 999967 calls        0, time 0.0000 sec Matrix assembling - 3
+job 999968 calls        0, time 0.0000 sec Matrix assembling - 2
+job 999969 calls        0, time 0.0000 sec Matrix assembling - 1
+job 999970 calls       10, time 0.6260 sec Matrix assembling bound
+job 999971 calls       10, time 39.5019 sec Matrix assembling vol
+job 999972 calls       10, time 7.7435 sec Matrix assembling part 2
+job 999973 calls       10, time 0.0486 sec Matrix assembling part 1a
+job 999974 calls       10, time 0.0128 sec Matrix assembling - clear matrix
+job 999975 calls       10, time 4.0888 sec Matrix assembling part 1
+job 999976 calls       10, time 52.0088 sec Matrix assembling
+job 999977 calls       86, time 0.0077 sec MatrixGraph - CalcBalancing
+job 999978 calls       10, time 6.6779 sec MatrixGraph
+job 999979 calls       10, time 9.4966 sec BilinearForm::GetGraph
+job 999980 calls        5, time 0.1579 sec Vector assembling 3
+job 999981 calls  3654094, time 8.8661 sec Vector assembling 2
+job 999982 calls        5, time 0.9066 sec Vector assembling 1
+job 999983 calls        5, time 10.4831 sec Vector assembling
+job 999984 calls     4011, time 0.1601 sec, MFlops = 1091.91 BaseVector::SetScalar
+job 999985 calls       10, time 0.9254 sec FESpace::FinalizeUpdate
+job 999986 calls        5, time 1.0445 sec H1HighOrderFESpace::Update
+job 999987 calls        5, time 15.7497 sec Mesh adaption
+job 999988 calls        5, time 0.0001 sec Init Lapack
+job 999989 calls        5, time 142.4384 sec Solver - Total
+job 999990 calls        5, time 0.0000 sec npv1
+job 999991 calls        5, time 8.3905 sec np1
+job 999992 calls        5, time 12.1848 sec c
+job 999993 calls        0, time 0.0000 sec a low-order
+job 999994 calls        5, time 61.5077 sec a
+job 999995 calls        5, time 10.4831 sec f
+job 999996 calls        5, time 0.0057 sec u
+job 999997 calls        0, time 0.0000 sec FESpace
+job 999998 calls        5, time 1.9701 sec v
+job 999999 calls        1, time 0.0121 sec LoadPDE
