@@ -9,6 +9,7 @@
 !*/
 
 *.o
+*.trace
 *.pde
 *.vol
 *.in2d
