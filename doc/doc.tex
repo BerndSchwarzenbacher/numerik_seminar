@@ -53,11 +53,10 @@ matrix vector multiplication is used. Then the same routine is called
 recursevily at line 22 with the coarse residuum and the coarse solution. The
 coarse solution then is added back onto the fine solution.
 
-\lstset{language=C++, numbers=left, captionpos=b,
+\lstset{language=C++, numbers=left, captionpos=b, breaklines=true,
         caption={Multiplication Method of the AMG-Preconditioner}}
 \begin{lstlisting}
-void my_AMG_H1 :: Mult (const ngla::BaseVector & b,
-                        ngla::BaseVector & x) const
+void my_AMG_H1 :: Mult (const ngla::BaseVector & b, ngla::BaseVector & x) const
 {
   if (inv)
   {
@@ -93,7 +92,7 @@ Most of the matrices are stored in the ccs-format (compressed column storage).
  first and last entry of the row k in the indexvector. One
  iteration through one row ist very easy to provide.
 
-\lstset{language=C++, numbers=left, captionpos=b,
+\lstset{language=C++, numbers=none, captionpos=b,
         caption={Row-iteration of sparsematrices }}
 \begin{lstlisting}
 for (int j = firsti[k]; j < lasti[k]; ++j)
@@ -121,13 +120,7 @@ executed by a single task, there is no limitation in which order which task
 \lstset{language=C++, numbers=left, captionpos=b,
         caption={Matrix vector multiplication with parallel for section}}
 \begin{lstlisting}
-void MultAdd3 (double s, const BaseVector & x, BaseVector & y) const
-  {
-    static Timer timer("SparseMatrix::MultAdd-Parallel");
-    RegionTimer reg (timer);
-    timer.AddFlops(this->nze);
-    FlatVector<double> fx = x.FV<double> ();
-    FlatVector<double> fy = y.FV<double> ();
+void MultAddParallel (double s, const BaseVector & x, BaseVector & y) const  {
 
 #pragma omp parallel for
     for (int i = 0; i < this->Height(); ++i)
@@ -137,7 +130,7 @@ void MultAdd3 (double s, const BaseVector & x, BaseVector & y) const
 
       for (int j = first; j < last; ++j)
       {
-        fy(i) += s * data[j] * fx(colnr[j]);
+        y(i) += s * data[j] * x(colnr[j]);
       }
     }
   }
@@ -149,18 +142,10 @@ void MultAdd3 (double s, const BaseVector & x, BaseVector & y) const
 To provide the multiplication of the transposed of a matrix and a given vector
  a sequential script is written in a similar way.
 
-\lstset{language=C++, numbers=left, captionpos=b,
-        caption={Transposed vector multiplication, sequential}}
+\lstset{language=C++, numbers=none, captionpos=b,
+        caption={Transposed vector multiplication}}
 \begin{lstlisting}
-void TranMultAdd1 (double s, const BaseVector & x,
-                                    BaseVector & y) const
-  {
-    static Timer timer("SparseMatrix::TranMultAdd-Sequential");
-    RegionTimer reg (timer);
-    timer.AddFlops(this->nze);
-    FlatVector<double> fx = x.FV<double> ();
-    FlatVector<double> fy = y.FV<double> ();
-
+...
     for (int i = 0; i < this->Height(); ++i)
     {
       int first = firsti [i];
@@ -168,13 +153,10 @@ void TranMultAdd1 (double s, const BaseVector & x,
 
       for (int j = first; j < last; ++j)
       {
-        fy(colnr[j]) += s * data[j] * fx(i);
+        y(colnr[j]) += s * data[j] * x(i);
       }
-
     }
-  }
-
-
+...
 \end{lstlisting}
 
 The difference is the dependency of a single outcoming entry. It is calculated
@@ -202,38 +184,16 @@ Less entries and a larger matrix result in a higher amount of calculations per
 
 The atomic version is very straight forward:
 
-\lstset{language=C++, numbers=left, captionpos=b,
-        caption={Transposed vector multiplication, parallel for with atomic}}
+\lstset{language=C++, numbers=none, captionpos=b,
+        caption={Transposed vector multiplication, atomic section}}
 \begin{lstlisting}
-void TranMultAdd2 (double s, const BaseVector & x,
-                                  BaseVector & y) const
-  {
-    static Timer timer("SparseMatrix::TranMultAdd-Parallel-For");
-    RegionTimer reg (timer);
-    timer.AddFlops(this->nze);
-    FlatVector<double> fx = x.FV<double> ();
-    FlatVector<double> fy = y.FV<double> ();
-
-#pragma omp parallel
-    {
-#pragma omp for
-      for (int i = 0; i < this->Height(); ++i) {
-        int first = firsti [i];
-        int last  = firsti [i+1];
-
-        for (int j = first; j < last; ++j)
-        {
+...
 #pragma omp atomic
           fy(colnr[j]) += s * data[j] * fx(i);
-        }
-
-      }
-    }
-  }
-
+...
 \end{lstlisting}
 
-The bottleneck of this algorithm is line 19, because every task has to pass this
+This is the bottleneck of this algorithm, because every task has to pass this
 line and they lock each other.
 
 The dynamic task partitioning solves another problem of this code. {\em OMP for}
@@ -263,12 +223,8 @@ simple algorithm it is possible to  determine this number for each row of the
 \lstset{language=C++, numbers=left, captionpos=b,
         caption={Transposed vector multiplication, static balancing}}
 \begin{lstlisting}
-void TranMultAdd3 (double s, const BaseVector & x,
-                                  BaseVector & y) const
+void TranMultBalance (double s, const BaseVector & x, BaseVector & y) const
   {
-    static Timer timer("SparseMatrix::TranMultAdd-Balancing");
-    RegionTimer reg (timer);
-    timer.AddFlops(this->nze);
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();
 
@@ -331,10 +287,6 @@ any columns with nonzeroelements in common. With this information we can iterate
 \begin{lstlisting}
 void Coloring ()
   {
-    static Timer timer("SparseMatrix::Coloring");
-    RegionTimer reg (timer);
-    timer.AddFlops(this->nze);
-
     int height = this->Height();
     int width = this->Width();
 
@@ -363,7 +315,7 @@ void Coloring ()
         for (int i = first; i < last; ++i)
           check |= mask[colnr[i]];
 
-        if (check != UINT_MAX) // 0xFFFFFFFF)
+        if (check != UINT_MAX) 
         {
           found++;
           unsigned checkbit = 1;
@@ -407,9 +359,6 @@ void Coloring ()
 \begin{lstlisting}
 void TranMultAdd4 (double s, const BaseVector & x, BaseVector & y)
   {
-    static Timer timer("SparseMatrix::TranMultAdd-Coloring");
-    RegionTimer reg (timer);
-    timer.AddFlops(this->nze);
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();
 
@@ -431,7 +380,6 @@ void TranMultAdd4 (double s, const BaseVector & x, BaseVector & y)
           }
         }
       }
-
     }
   }
 
@@ -444,8 +392,8 @@ Gauß-Seidel-Method. This is similar to the Jacobi-Method, where computing
  the vector $Ax$ is necessary. The difference is,
 that we also use the new information optioned by previous computations of
 entries of the solution vector. In particular a new entry is given by
-$$ x_j^{new} = \frac{1}{A_{jj}} (b_{j} - \sum_{k \in K^{new}}A_{jk} x_k^{new}
- - \sum_{k \in K^{old}}A_{jk} x_k^{old})$$
+$$ x_j^{new} = \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$$
 for $j = 1..n$. $K^{new}$ denotes the set of indices of new calculated entries
  of $x$, where $K^{old}$ denotes the old entries.
 
@@ -475,4 +423,170 @@ The main advance of this method is, that the coloring process has to be
 As in the motivation mentioned, GSSmooth is called with matrices getting
  smaller and GSSmoothBack in reverse order on matrices getting larger.
  The improve of speed is shown in GRAFIK.
+
+\lstset{language=c++, numbers=left, captionpos=b,
+        caption={Gauß-Seidel coloring and balancing}}
+\begin{lstlisting}
+
+  void JacobiPrecond<TM,TV_ROW,TV_COL> :: Coloring ()
+  {
+    //static Timer timer("JacobiPrecond::Coloring");
+    //RegionTimer reg (timer);
+
+    int height = mat.Height();
+    int width = mat.Width();
+
+    Array<int> row_color(height);
+    row_color = -1;
+
+    int maxcolor = 0;
+    int basecol = 0;
+
+    Array<unsigned int> mask(width);
+
+    int found = 0;
+
+    int num_threads = task_manager->GetNumThreads();
+     
+    do
+    {
+      mask = 0;
+
+      int block_size = ceil((double)height / (double)num_threads);
+
+      for (int block_row = 0; block_row < block_size; ++block_row)
+      {
+        for (int threadi = 0; threadi < num_threads; ++threadi)
+        {
+          int row = block_row + threadi * block_size;
+          if (row >= height) break;
+          if (row_color[row] >= 0) continue;
+
+          int first = mat.firsti [row];
+          int last  = mat.firsti [row+1];
+
+          unsigned check = 0;
+          for (int i = first; i < last; ++i)
+            check |= mask[mat.colnr[i]];
+
+          if (check != UINT_MAX) // 0xFFFFFFFF)
+          {
+            found++;
+            unsigned checkbit = 1;
+            int color = basecol;
+            while (check & checkbit)
+            {
+              color++;
+              checkbit *= 2;
+            }
+
+            row_color[row] = color;
+            if (color > maxcolor) maxcolor = color;
+
+            mask[row] |= checkbit;
+          }
+        }
+      }
+
+      basecol += 8*sizeof(unsigned int); // 32;
+    }
+    while (found < height);
+
+    Array<int> cntcol(maxcolor+1);
+    cntcol = 0;
+    for (int row = 0; row < height; ++row)
+      ++cntcol[row_color[row]];
+
+    coloring_ = Table<int>(cntcol);
+
+    cntcol = 0;
+    for (int row = 0; row < height; ++row)
+      coloring_[row_color[row]][cntcol[row_color[row]]++] = row;
+
+    balancing_.SetSize (maxcolor+1);
+    for (auto c : Range (balancing_))
+    {
+      balancing_[c].Calc (coloring_[c].Size(),
+        [&] (int bi)
+        {
+          return 5 + mat.GetRowIndices(coloring_[c][bi]).Size();
+        });
+    }
+
+    //cout << "Balancing: " << balancing_ << endl;
+    std::cout << "needed " << maxcolor+1 << " colors" << std::endl;
+  }
+
+\end{lstlisting}
+
+\lstset{language=c++, numbers=left, captionpos=b,
+        caption={Gauß-Seidel Smooth}}
+\begin{lstlisting}
+
+
+
+  void JacobiPrecond<TM,TV_ROW,TV_COL> ::
+  GSSmooth (BaseVector & x, const BaseVector & b) const 
+  {
+    //static Timer timer("JacobiPrecond::GSSmooth");
+    //timer.AddFlops (mat.NZE());
+    //RegionTimer reg (timer);
+
+    FlatVector<TV_ROW> fx = x.FV<TV_ROW> ();
+    // dynamic_cast<T_BaseVector<TV_ROW> &> (x).FV();
+    const FlatVector<TV_ROW> fb = b.FV<TV_ROW> ();
+    // dynamic_cast<const T_BaseVector<TV_ROW> &> (b).FV();
+
+    for (int j = 0; j < this->coloring_.Size(); ++j)
+    {
+      auto color = this->coloring_[j];
+      ParallelFor( this->balancing_[j],
+        [this, fx, fb, color] (int i)
+        {
+          int row = color[i];
+          if (!this->inner || this->inner->Test(row))
+          {
+            TV_ROW ax = mat.RowTimesVector (row, fx);
+            fx(row) += invdiag[row] * (fb(row) - ax);
+          }
+        }, 4);
+    }
+  }
+\end{lstlisting}
+
+\lstset{language=c++, numbers=left, captionpos=b,
+        caption={Gauß-Seidel SmoothBack}}
+\begin{lstlisting}
+  void JacobiPrecond<TM,TV_ROW,TV_COL> ::
+  GSSmoothBack (BaseVector & x, const BaseVector & b) const 
+  {
+    //static Timer timer("JacobiPrecond::GSSmoothBack");
+    //timer.AddFlops (mat.NZE());
+    //RegionTimer reg (timer);
+
+    FlatVector<TV_ROW> fx = x.FV<TV_ROW> ();
+    // dynamic_cast<T_BaseVector<TV_ROW> &> (x).FV();
+    const FlatVector<TV_ROW> fb = b.FV<TV_ROW> ();
+    //dynamic_cast<const T_BaseVector<TV_ROW> &> (b).FV();
+
+    for (int j = this->coloring_.Size()-1; j >= 0; --j)
+    {
+      auto color = this->coloring_[j];
+      ParallelFor( this->balancing_[j],
+        [this, fx, fb, color] (int i)
+        {
+          int row = color[i];
+          if (!this->inner || this->inner->Test(row))
+          {
+            TV_ROW ax = mat.RowTimesVector (row, fx);
+            fx(row) += invdiag[row] * (fb(row) - ax);
+          }
+        }, 4);
+    }
+  }
+
+
+\end{lstlisting}
+
+
 \end{document}
