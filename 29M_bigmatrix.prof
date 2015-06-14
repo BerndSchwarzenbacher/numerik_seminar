@@ -1,0 +1,10 @@
+job 999990 calls        1, time 2.9269 sec, MFlops = 418.34 SparseMatrix::TranMultAdd-Parallel-For-Dyn
+job 999991 calls        1, time 1.7523 sec, MFlops = 698.77 SparseMatrix::TranMultAdd-Coloring
+job 999992 calls        1, time 17.0824 sec, MFlops =  71.68 SparseMatrix::Coloring
+job 999993 calls        1, time 1.1752 sec, MFlops = 1041.89 SparseMatrix::TranMultAdd-Balancing
+job 999994 calls        1, time 1.2502 sec, MFlops = 979.42 SparseMatrix::TranMultAdd-Parallel-For
+job 999995 calls        1, time 0.5523 sec, MFlops = 2216.91 SparseMatrix::MultAdd-Parallel
+job 999996 calls        1, time 2.1865 sec, MFlops = 560.00 SparseMatrix::MultAdd-Sequential
+job 999997 calls        1, time 2.5521 sec, MFlops = 479.78 SparseMatrix::TranMultAdd-Sequential
+job 999998 calls        1, time 1.8198 sec, MFlops = 672.84 SparseMatrix::MultAdd-Original
+job 999999 calls        1, time 77.7199 sec binary - load
