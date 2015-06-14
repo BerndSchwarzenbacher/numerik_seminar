@@ -114,60 +114,74 @@ Technical University of Vienna \\ % Your institution for the title page
 \section{Motivation - AMG}
 %------------------------------------------------
 
-%\subsection{Subsection Example}
-
 \begin{frame}
 \frametitle{Iterative Solvers}
 Fixed-point equation:
-$$x = x + \tau C^{-1} (b-Ax)$$
+$$x = x + C^{-1} (b-Ax)$$
 \begin{block}{Richardson Iteration}
 Startvalue $x_{0}$ \\
 For $j = 0, 1, 2, \dots$ \\
-$x_{j+1} = x_{j} + \tau C^{-1} (b - Ax_{j})$
+\quad $x_{j+1} = x_{j} + C^{-1} (b - Ax_{j})$
 \end{block}
 \end{frame}
-
-%\subsection{Subsection Example}
 
 \begin{frame}
 \frametitle{Preconditioning}
 \begin{block}{Richardson Iteration}
-$x_{j+1} = x_{j} + \tau C^{-1} (b - Ax_{j})$
+$x_{new} = x_{old} + C^{-1} (b - Ax_{old})$
 \end{block}
+$C \dots$ Preconditioner:
 \begin{itemize}
-  \item $C$ - Preconditioner:
-    \begin{itemize}
-      \item Cheap matrix vector multiplikation with $C^{-1}$
-      \item Good approximation of $A$
-    \end{itemize}
+  \item Cheap matrix vector multiplikation with $C^{-1}$
+  \item Good approximation of $A$
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Jacobi Preconditioner}
+\begin{block}{Richardson Iteration}
+$x_{new} = x_{old} + C^{-1} (b - Ax_{old})$
+\end{block}
+$$C = diag(A)$$
+$$x_j^{new} = \frac{1}{A_{jj}} \left(b_{j} -
+\sum_{k=1}^{n} A_{jk} x_k^{old}\right)$$
 \end{frame}
 
 \begin{frame}
 \frametitle{Gau\ss-Seidel Preconditioner}
-$C \dots$ Preconditioner
-\begin{itemize}
-  \item Cheap matrix vector multiplikation with $C^{-1}$
-  \item Good approximation of $A$
-\end{itemize}
+\begin{block}{Richardson Iteration}
+$x_{new} = x_{old} + C^{-1} (b - Ax_{old})$
+\end{block}
+$$C = L + diag(A)$$
+$$x_j^{new} = \frac{1}{A_{jj}} \left(b_{j} - \sum_{k=1}^{j-1} A_{jk}
+x_k^{new} - \sum_{k=j}^{n} A_{jk} x_k^{old}\right)$$
+\end{frame}
+
+\begin{frame}
+\frametitle{Multigrid Preconditioning}
+$$x_{new} = x_{old} + P (P^{T} A P)^{-1} P^{T} (b - A x_{old})$$
+$$P =
+\begin{pmatrix}
+  1 & 0 & 0 & 0 \\
+  1 & 0 & 0 & 0 \\
+  0 & 1 & 0 & 0 \\
+  0 & 1 & 0 & 0 \\
+  0 & 0 & 1 & 0 \\
+  0 & 0 & 0 & 1 \\
+  0 & 0 & 0 & 1 \\
+  0 & 0 & 0 & 1 \\
+\end{pmatrix}
+$$
+$P \dots$ Prolongation Matrix
 \end{frame}
 
 \begin{frame}
 \frametitle{AMG - Algebraic Multigrid}
 \begin{itemize}
-  \item Multigrid - Combine several bad Preconditioner to one good
-    Preconditioner
-  \item On each level use cheap Gau\ss-Seidel Preconditioner
+  \item More than 2 levels
+  \item On each level use cheap Gau\ss-Seidel preconditioner
+  \item Direct solver on coarsest level
   \item Algebraic - artificial coarsening without mesh information
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{AMG - Algebraic Multigrid}
-$C \dots$ Preconditioner
-\begin{itemize}
-  \item Cheap matrix vector multiplikation with $C^{-1}$
-  \item Good approximation of $A$
 \end{itemize}
 \end{frame}
 
@@ -343,4 +357,4 @@ This statement requires citation \cite{p1}.
 
 %----------------------------------------------------------------------------------------
 
-\end{document} 
+\end{document}
