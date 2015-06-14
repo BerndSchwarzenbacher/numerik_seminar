@@ -272,48 +272,62 @@ Other solution: \textbf{matrix coloring}
 \begin{frame}
 \frametitle{Coloring}
 Problem: $A^T \cdot x= y$
-
-Example:
-\includegraphics[width=0.9\linewidth]{graphic/coloringT2.eps}
+(Example)
+\includegraphics[width=0.8\linewidth]{graphic/coloringT1.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
+Problem: $A^T \cdot x= y$
+\includegraphics[width=0.8\linewidth]{graphic/coloringT2.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+Problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT3.eps}
 \end{frame}
 
+
 \begin{frame}
 \frametitle{Coloring}
+Problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT4.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
+Problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT5.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
+Problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT6.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
+Problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT7.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
+Problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT8.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
+Problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT9.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
+Problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT10.eps}
 \end{frame}
 
@@ -352,8 +366,6 @@ coloring\footnote{about 500 colors, 17 sec} & 1.75 sec & 700 MFlops \\
 %----------------------------------------------------------
 %---------------------------------------------------------
 
-\section{Gau\ss-Seidel}
-
 \begin{frame}
 \frametitle{Gau\ss-Seidel Preconditioner}
 \begin{block}{Richardson Iteration}
@@ -379,16 +391,111 @@ coloring
 \end{itemize}
 
 
-$$ x_j^{new} = \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+$$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
  x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$$
 $K^{new}$ ... calculated indices of $x$;
 $K^{old}$ ... old indices of $x$
 \end{frame}
 
 \begin{frame}
-\frametitle{coloring}
-example:
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+Example:
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS1.eps}
 \end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS2.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS3.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS4.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS5.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS6.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS7.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS8.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS9.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS10.eps}
+\end{frame}
+
+\begin{frame}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\frametitle{Coloring}
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS11.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS12.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS13.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+$ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
+\includegraphics[width=0.8\linewidth]{graphic/coloringGS14.eps}
+\end{frame}
+%--------------------------------------------------------------
 
 \begin{frame}
 \frametitle{Gau\ss-Seidel - Coloring}
