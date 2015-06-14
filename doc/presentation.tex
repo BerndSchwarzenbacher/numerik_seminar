@@ -337,14 +337,16 @@ Example:
 \begin{table}
 \begin{tabular}{l l l}
 \toprule
-\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
+\textbf{method} & \textbf{time} & \textbf{flops}\\
 \midrule
-Treatment 1 & 0.0003262 & 0.562 \\
-Treatment 2 & 0.0015681 & 0.910 \\
-Treatment 3 & 0.0009271 & 0.296 \\
+sequential & 2.55 sec & 480 MFlops \\
+atomic & 1.25 sec & 980 MFlops \\
+dynamic & 2.93 sec & 420 MFlops \\
+balancing & 1.18 sec & 1040 MFlops \\
+coloring\footnote{about 500 colors, 17 sec} & 1.75 sec & 700 MFlops \\
 \bottomrule
 \end{tabular}
-\caption{Table caption}
+\caption{matrix dimension: $29\cdot 10^6$, non-zero-entries: $1.2\cdot 10^9$}
 \end{table}
 \end{frame}
 %----------------------------------------------------------
