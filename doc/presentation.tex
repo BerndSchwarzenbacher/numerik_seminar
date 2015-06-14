@@ -106,21 +106,68 @@ Technical University of Vienna \\ % Your institution for the title page
 \tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
 \end{frame}
 
-%----------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------
 %	PRESENTATION SLIDES
-%----------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------
 
 %------------------------------------------------
-\section{Motivation - AMG} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+\section{Motivation - AMG}
 %------------------------------------------------
 
-%\subsection{Subsection Example} % A subsection can be created just before a set of slides with a common theme to further break down your presentation into chunks
+%\subsection{Subsection Example}
 
 \begin{frame}
-\frametitle{Introduction to the AMG}
-Usage:
+\frametitle{Iterative Solvers}
+Fixed-point equation:
+$$x = x + \tau C^{-1} (b-Ax)$$
+\begin{block}{Richardson Iteration}
+Startvalue $x_{0}$ \\
+For $j = 0, 1, 2, \dots$ \\
+$x_{j+1} = x_{j} + \tau C^{-1} (b - Ax_{j})$
+\end{block}
+\end{frame}
+
+%\subsection{Subsection Example}
+
+\begin{frame}
+\frametitle{Preconditioning}
+\begin{block}{Richardson Iteration}
+$x_{j+1} = x_{j} + \tau C^{-1} (b - Ax_{j})$
+\end{block}
 \begin{itemize}
-\item XXXXXXX
+  \item $C$ - Preconditioner:
+    \begin{itemize}
+      \item Cheap matrix vector multiplikation with $C^{-1}$
+      \item Good approximation of $A$
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Gau\ss-Seidel Preconditioner}
+$C \dots$ Preconditioner
+\begin{itemize}
+  \item Cheap matrix vector multiplikation with $C^{-1}$
+  \item Good approximation of $A$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{AMG - Algebraic Multigrid}
+\begin{itemize}
+  \item Multigrid - Combine several bad Preconditioner to one good
+    Preconditioner
+  \item On each level use cheap Gau\ss-Seidel Preconditioner
+  \item Algebraic - artificial coarsening without mesh information
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{AMG - Algebraic Multigrid}
+$C \dots$ Preconditioner
+\begin{itemize}
+  \item Cheap matrix vector multiplikation with $C^{-1}$
+  \item Good approximation of $A$
 \end{itemize}
 \end{frame}
 

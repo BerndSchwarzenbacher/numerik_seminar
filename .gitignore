@@ -21,3 +21,6 @@
 *.aux
 *.log
 *.synctex.gz
+*.nav
+*.snm
+*.vrb

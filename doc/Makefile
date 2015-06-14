@@ -1,3 +1,5 @@
+all: doc.pdf presentation.pdf
+
 doc.pdf: doc.tex
 	pdflatex doc.tex doc.pdf
 	pdflatex doc.tex doc.pdf
