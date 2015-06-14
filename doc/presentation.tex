@@ -216,13 +216,125 @@ for (int j = firsti[k]; j < lasti[k]; ++j)
 \end{itemize}
 \end{frame}
 
+
+\defverbatim[colored]\codeB{
+\begin{lstlisting}[language=C++,basicstyle=\ttfamily,keywordstyle=\color{blue}]
+    for (int i = 0; i < this->Height(); ++i)
+    {
+      int first = firsti [i];
+      int last  = firsti [i+1];
+
+      for (int j = first; j < last; ++j)
+      {
+        y(colnr[j]) += data[j] * x(i);
+      }
+    }
+\end{lstlisting}
+}
+
 \begin{frame}
-\frametitle{Coloring}
-Target: $y=A^T \cdot x$
-\includegraphics[width=0.8\linewidth]{graphic/coloringT.eps}
+\frametitle{Transposed matrix vector multiplication}
+Problem: $A^T\cdot x=y$
+\begin{block}{codesection}
+\codeB
+\end{block}
 \end{frame}
 
+\defverbatim[colored]\codeC{
+\begin{lstlisting}[language=C++,basicstyle=\ttfamily,keywordstyle=\color{blue}]
+   #pragma omp for schedule (dynamic, 100) 
+\end{lstlisting}
+}
 
+\begin{frame}
+\frametitle{Transposed matrix vector multiplication}
+\textbf{ Problem at parallelization:}
+\begin{itemize}
+\item row indexing is necessary
+\item multiple writing entries per row 
+\end{itemize}
+
+\textbf{ Possible solutions:}
+\begin{itemize}
+\item atomic section
+\item atomic section with dynamic thread partitioning \codeC
+\item atomic section with static thread seperation
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+Best solution: \textbf{matrix coloring}
+\begin{itemize}
+\item some rows do not interfere
+\item build groups of rows (colors)
+\item parallelize each color
+\item run loop through different colors sequential
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+Problem: $A^T \cdot x= y$
+
+Example:
+\includegraphics[width=0.9\linewidth]{graphic/coloringT2.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+\includegraphics[width=0.8\linewidth]{graphic/coloringT3.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+\includegraphics[width=0.8\linewidth]{graphic/coloringT4.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+\includegraphics[width=0.8\linewidth]{graphic/coloringT5.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+\includegraphics[width=0.8\linewidth]{graphic/coloringT6.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+\includegraphics[width=0.8\linewidth]{graphic/coloringT7.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+\includegraphics[width=0.8\linewidth]{graphic/coloringT8.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+\includegraphics[width=0.8\linewidth]{graphic/coloringT9.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+\includegraphics[width=0.8\linewidth]{graphic/coloringT10.eps}
+\end{frame}
+
+\begin{frame}
+\frametitle{Coloring}
+\textbf{ Disadvantage:}
+\begin{itemize}
+\item coloring has to be done separately
+\end{itemize}
+
+\textbf{ Advantages:}
+\begin{itemize}
+\item row indexing
+\item no atomic sections
+\item calculated coloring could be used often
+\end{itemize}
+\end{frame}
 
 
 %              -----------------------------------------------------
