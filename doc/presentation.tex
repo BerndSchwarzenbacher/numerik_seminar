@@ -244,7 +244,7 @@ Problem: $A^T\cdot x=y$
 
 \begin{frame}
 \frametitle{Transposed matrix vector multiplication}
-\textbf{Problem at parallelization:}
+\textbf{Problem with parallelization:}
 \begin{itemize}
 \item row indexing is necessary
 \item multiple writing entries per row
@@ -260,7 +260,7 @@ Problem: $A^T\cdot x=y$
 
 \begin{frame}
 \frametitle{Coloring}
-Best solution: \textbf{matrix coloring}
+Other solution: \textbf{matrix coloring}
 \begin{itemize}
 \item some rows do not interfere
 \item build groups of rows (colors)
@@ -332,6 +332,61 @@ Example:
 \end{itemize}
 \end{frame}
 
+\begin{frame}
+\frametitle{Time measurement}
+\begin{table}
+\begin{tabular}{l l l}
+\toprule
+\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
+\midrule
+Treatment 1 & 0.0003262 & 0.562 \\
+Treatment 2 & 0.0015681 & 0.910 \\
+Treatment 3 & 0.0009271 & 0.296 \\
+\bottomrule
+\end{tabular}
+\caption{Table caption}
+\end{table}
+\end{frame}
+%----------------------------------------------------------
+%---------------------------------------------------------
+
+\section{Gau\ss-Seidel}
+
+\begin{frame}
+\frametitle{Gau\ss-Seidel Preconditioner}
+\begin{block}{Richardson Iteration}
+$x^{new} = x^{old} + C^{-1} (b - Ax^{old})$
+\end{block}
+$$C = L + diag(A)$$
+$$x_j^{new} = x_j^{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k=1}^{j-1} A_{jk}
+x_k^{new} - \sum_{k=j}^{n} A_{jk} x_k^{old}\right)$$
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Gau\ss-Seidel Preconditioner}
+
+\textbf{Parallelization:}
+\begin{itemize}
+\item calculation of $x_j^{new}$ uses old and new entries
+\item $x_j^{new}$ overwrites $x_j^{old}$
+\item \textbf{problem:} some threads will write while others read
+\item \textbf{problem:} each call of method causes different dependencies of $x_j$ 
+\item \textbf{solution:}
+coloring
+\end{itemize}
+
+
+$$ x_j^{new} = \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+ x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$$
+$K^{new}$ ... calculated indices of $x$;
+$K^{old}$ ... old indices of $x$
+\end{frame}
+
+\begin{frame}
+\frametitle{coloring}
+example:
+\end{frame}
 
 \begin{frame}
 \frametitle{Gau\ss-Seidel - Coloring}
