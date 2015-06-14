@@ -101,10 +101,10 @@ Technical University of Vienna \\ % Your institution for the title page
 \titlepage % Print the title page as the first slide
 \end{frame}
 
-\begin{frame}
-\frametitle{Overview} % Table of contents slide, comment this block out to remove it
-\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
-\end{frame}
+%\begin{frame}
+%\frametitle{Overview} % Table of contents slide, comment this block out to remove it
+%\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+%\end{frame}
 
 %------------------------------------------------------------------------------
 %	PRESENTATION SLIDES
@@ -121,14 +121,14 @@ $$x = x + C^{-1} (b-Ax)$$
 \begin{block}{Richardson Iteration}
 Startvalue $x_{0}$ \\
 For $j = 0, 1, 2, \dots$ \\
-\quad $x_{j+1} = x_{j} + C^{-1} (b - Ax_{j})$
+\quad $x^{j+1} = x^{j} + C^{-1} (b - Ax^{j})$
 \end{block}
 \end{frame}
 
 \begin{frame}
 \frametitle{Preconditioning}
 \begin{block}{Richardson Iteration}
-$x_{new} = x_{old} + C^{-1} (b - Ax_{old})$
+$x^{new} = x^{old} + C^{-1} (b - Ax^{old})$
 \end{block}
 $C \dots$ Preconditioner:
 \begin{itemize}
@@ -140,20 +140,20 @@ $C \dots$ Preconditioner:
 \begin{frame}
 \frametitle{Jacobi Preconditioner}
 \begin{block}{Richardson Iteration}
-$x_{new} = x_{old} + C^{-1} (b - Ax_{old})$
+$x^{new} = x^{old} + C^{-1} (b - Ax^{old})$
 \end{block}
 $$C = diag(A)$$
-$$x_j^{new} = \frac{1}{A_{jj}} \left(b_{j} -
+$$x_j^{new} = x_j^{old} + \frac{1}{A_{jj}} \left(b_{j} -
 \sum_{k=1}^{n} A_{jk} x_k^{old}\right)$$
 \end{frame}
 
 \begin{frame}
 \frametitle{Gau\ss-Seidel Preconditioner}
 \begin{block}{Richardson Iteration}
-$x_{new} = x_{old} + C^{-1} (b - Ax_{old})$
+$x^{new} = x^{old} + C^{-1} (b - Ax^{old})$
 \end{block}
 $$C = L + diag(A)$$
-$$x_j^{new} = \frac{1}{A_{jj}} \left(b_{j} - \sum_{k=1}^{j-1} A_{jk}
+$$x_j^{new} = x_j^{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k=1}^{j-1} A_{jk}
 x_k^{new} - \sum_{k=j}^{n} A_{jk} x_k^{old}\right)$$
 \end{frame}
 
@@ -178,10 +178,19 @@ $P \dots$ Prolongation Matrix
 \begin{frame}
 \frametitle{AMG - Algebraic Multigrid}
 \begin{itemize}
-  \item More than 2 levels
-  \item On each level use cheap Gau\ss-Seidel preconditioner
+  \item Combine Multigrid and Gau\ss-Seidel preconditioner
   \item Direct solver on coarsest level
-  \item Algebraic - artificial coarsening without mesh information
+  \item Algebraic - artificial coarsening without information of mesh
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{AMG - Parallelization}
+\begin{itemize}
+  \item Multigrid - transposed matrix-vector multiplication:
+    $P^{T} (b-Ax^{old})$
+  \item Gau\ss-Seidel: \\ $$\frac{1}{A_{jj}} \left(b_{j} - \sum_{k=1}^{j-1} A_{jk}
+x_k^{new} - \sum_{k=j}^{n} A_{jk} x_k^{old}\right)$$
 \end{itemize}
 \end{frame}
 
