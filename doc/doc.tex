@@ -6,6 +6,12 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{listings}
+\usepackage{graphicx}
+
+ \usepackage[usenames,dvipsnames]{pstricks}
+ \usepackage{epsfig}
+ \usepackage{pst-grad} % For gradients
+ \usepackage{pst-plot} % For axes
 
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\N}{\mathbb{N}}
@@ -277,8 +283,8 @@ void TranMultBalance (double s, const BaseVector & x, BaseVector & y) const
 Every method still has the same problem with the atomic operation in its
 essential part. To avoid this, we have to make sure that multiple tasks do not
 write on the same entry of the outcoming vector at the same time. To solve this,
- we will "color" each row of the matrix. Two group of rows will get the same
-color, if they do not write on the same entry. This is equivalent to not having
+ we will "color" each row of the matrix. A group of rows will get the same
+color, if they do not write on the same entries. This is equivalent to not having
 any columns with nonzeroelements in common. With this information we can iterate through the different colors sequential but parallelize every loop through
  a group of same-colored-rows, because they will not interfere.
 
@@ -404,7 +410,9 @@ the method GSSmoothBack is able to compute them in the reverse order.
  
 In the end we implemented a coloring alghorithm.
 Similar to the transposed matrix vector multiplication we mark the rows which
-can run parallel without influencing them. This works as following:
+can run parallel without influencing them.
+
+\subsection{Coloring}
 
 At calculating the product $A_jx$ which modifies the entry $x_j$ (where $A_j$ 
 denotes the j-th row of the matrix $A$) every entry $x_k$ is used, where
@@ -423,6 +431,11 @@ The main advance of this method is, that the coloring process has to be
 As in the motivation mentioned, GSSmooth is called with matrices getting
  smaller and GSSmoothBack in reverse order on matrices getting larger.
  The improve of speed is shown in GRAFIK.
+
+\begin{figure}
+%\input{seminargraph.tex}
+
+\end{figure}
 
 \lstset{language=c++, numbers=left, captionpos=b,
         caption={Gauß-Seidel coloring and balancing}}
@@ -587,6 +600,21 @@ As in the motivation mentioned, GSSmooth is called with matrices getting
 
 
 \end{lstlisting}
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{seq.png}
+    \caption{AMG sequential}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{iterations_trace.png}
+    \caption{AMG parallel}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{one_iteration.png}
+    \caption{AMG single parallel recursion}
+\end{figure}
 
 
 \end{document}
