@@ -114,11 +114,11 @@
 
 \begin{frame}
 \frametitle{Iterative Solvers}
-Fixed-point equation:
-$$x = x + C^{-1} (b-Ax)$$
+fixed-point equation:
+$$b = Ax \iff x = x + C^{-1} (b-Ax)$$
 \begin{block}{Richardson Iteration}
-Startvalue $x_{0}$ \\
-For $j = 0, 1, 2, \dots$ \\
+start value $x_{0}$ \\
+for $j = 0, 1, 2, \dots$ \\
 \quad $x^{j+1} = x^{j} + C^{-1} (b - Ax^{j})$
 \end{block}
 \end{frame}
@@ -128,10 +128,10 @@ For $j = 0, 1, 2, \dots$ \\
 \begin{block}{Richardson Iteration}
 $x^{new} = x^{old} + C^{-1} (b - Ax^{old})$
 \end{block}
-$C \dots$ Preconditioner:
+$C \dots$ preconditioner:
 \begin{itemize}
-  \item Cheap matrix vector multiplikation with $C^{-1}$
-  \item Good approximation of $A$
+  \item cheap matrix vector multiplikation with $C^{-1}$
+  \item good approximation of $A$
 \end{itemize}
 \end{frame}
 
@@ -156,7 +156,7 @@ x_k^{new} - \sum_{k=j}^{n} A_{jk} x_k^{old}\right)$$
 \end{frame}
 
 \begin{frame}
-\frametitle{Multigrid Preconditioning}
+\frametitle{Multigrid Preconditioner}
 $$x_{new} = x_{old} + P (P^{T} A P)^{-1} P^{T} (b - A x_{old})$$
 $$P =
 \begin{pmatrix}
@@ -170,23 +170,23 @@ $$P =
   0 & 0 & 0 & 1 \\
 \end{pmatrix}
 $$
-$P \dots$ Prolongation Matrix
+$P \dots$ prolongation matrix
 \end{frame}
 
 \begin{frame}
 \frametitle{AMG - Algebraic Multigrid}
 \begin{itemize}
-  \item Combine Multigrid and Gau\ss-Seidel preconditioner
-  \item Direct solver on coarsest level
-  \item Algebraic - artificial coarsening without information of mesh
+  \item combine Multigrid and Gau\ss-Seidel preconditioner
+  \item direct solver on coarsest level
+  \item algebraic - artificial coarsening without information of mesh
 \end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{AMG - Parallelization}
 \begin{itemize}
-  \item Multigrid - transposed matrix-vector multiplication:
-    $P^{T} (b-Ax^{old})$
+  \item multigrid: transposed matrix-vector multiplication:
+    $$P^{T} (b-Ax^{old})$$
   \item Gau\ss-Seidel: \\ $$\frac{1}{A_{jj}} \left(b_{j} - \sum_{k=1}^{j-1} A_{jk}
 x_k^{new} - \sum_{k=j}^{n} A_{jk} x_k^{old}\right)$$
 \end{itemize}
@@ -202,11 +202,11 @@ for (int j = firsti[k]; j < lasti[k]; ++j)
 }
 
 \begin{frame}
-\frametitle{Sparsematrices}
+\frametitle{Sparse Matrices}
 \begin{itemize}
-\item Internal Storage: ccs-format
-\item Usage:
-\begin{block}{Indexing | for-loop}
+\item internal storage: ccs-format
+\item usage:
+\begin{block}{indexing | for-loop}
 \codeA
 \end{block}
 \end{itemize}
@@ -229,9 +229,9 @@ for (int j = firsti[k]; j < lasti[k]; ++j)
 }
 
 \begin{frame}
-\frametitle{Transposed matrix vector multiplication}
-Problem: $A^T\cdot x=y$
-\begin{block}{codesection}
+\frametitle{Transposed Matrix-Vector Multiplication}
+problem: $A^T\cdot x=y$
+\begin{block}{code section}
 \codeB
 \end{block}
 \end{frame}
@@ -244,101 +244,101 @@ Problem: $A^T\cdot x=y$
 
 \begin{frame}
 \frametitle{Transposed matrix vector multiplication}
-\textbf{Problem with parallelization:}
+\textbf{problem with parallelization:}
 \begin{itemize}
 \item row indexing is necessary
 \item multiple writing entries per row
 \end{itemize}
 
-\textbf{Possible solutions:}
+\textbf{possible solutions:}
 \begin{itemize}
 \item atomic section
 \item atomic section with dynamic thread partitioning \codeC
-\item atomic section with static thread seperation
+\item atomic section with static thread separation
 \end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
-Other solution: \textbf{matrix coloring}
+other solution: \textbf{matrix coloring}
 \begin{itemize}
 \item some rows do not interfere
 \item build groups of rows (colors)
 \item parallelize each color
-\item run loop through different colors sequential
+\item run loop through different colors sequentially
 \end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
-Problem: $A^T \cdot x= y$
-(Example)
+problem: $A^T \cdot x= y$
+(example)
 \includegraphics[width=0.8\linewidth]{graphic/coloringT1.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
-Problem: $A^T \cdot x= y$
+problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT2.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
-Problem: $A^T \cdot x= y$
+problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT3.eps}
 \end{frame}
 
 
 \begin{frame}
 \frametitle{Coloring}
-Problem: $A^T \cdot x= y$
+problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT4.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
-Problem: $A^T \cdot x= y$
+problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT5.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
-Problem: $A^T \cdot x= y$
+problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT6.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
-Problem: $A^T \cdot x= y$
+problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT7.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
-Problem: $A^T \cdot x= y$
+problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT8.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
-Problem: $A^T \cdot x= y$
+problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT9.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
-Problem: $A^T \cdot x= y$
+problem: $A^T \cdot x= y$
 \includegraphics[width=0.8\linewidth]{graphic/coloringT10.eps}
 \end{frame}
 
 \begin{frame}
 \frametitle{Coloring}
-\textbf{Disadvantage:}
+\textbf{disadvantage:}
 \begin{itemize}
 \item coloring has to be done separately
 \end{itemize}
 
-\textbf{Advantages:}
+\textbf{advantages:}
 \begin{itemize}
 \item row indexing
 \item no atomic sections
@@ -347,7 +347,7 @@ Problem: $A^T \cdot x= y$
 \end{frame}
 
 \begin{frame}
-\frametitle{Time measurement}
+\frametitle{Time Measurement}
 \begin{table}
 \begin{tabular}{l l l}
 \toprule
@@ -360,7 +360,7 @@ balancing & 1.18 sec & 1040 MFlops \\
 coloring\footnote{about 500 colors, 17 sec} & 1.75 sec & 700 MFlops \\
 \bottomrule
 \end{tabular}
-\caption{matrix dimension: $29\cdot 10^6$, non-zero-entries: $1.2\cdot 10^9$}
+\caption{matrix dimension: $29\cdot 10^6$, non-zero entries: $1.2\cdot 10^9$}
 \end{table}
 \end{frame}
 %----------------------------------------------------------
@@ -380,12 +380,12 @@ x_k^{new} - \sum_{k=j}^{n} A_{jk} x_k^{old}\right)$$
 \begin{frame}
 \frametitle{Gau\ss-Seidel Preconditioner}
 
-\textbf{Parallelization:}
+\textbf{parallelization:}
 \begin{itemize}
 \item calculation of $x_j^{new}$ uses old and new entries
 \item $x_j^{new}$ overwrites $x_j^{old}$
 \item \textbf{problem:} some threads will write while others read
-\item \textbf{problem:} each call of method causes different dependencies of $x_j$ 
+\item \textbf{problem:} each call of method causes different dependencies of $x_j$
 \item \textbf{solution:}
 coloring
 \end{itemize}
@@ -401,7 +401,7 @@ $K^{old}$ ... old indices of $x$
 \frametitle{Coloring}
 $ x_j^{new} = x_{old} + \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
  x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$
-Example:
+example:
 \includegraphics[width=0.8\linewidth]{graphic/coloringGS1.eps}
 \end{frame}
 
