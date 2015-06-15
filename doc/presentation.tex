@@ -84,7 +84,7 @@
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
 
-\title[Iterative Solvers]{Iterative Solvers} % The short title appears at the bottom of every slide, the full title is only on the title page
+\title[Algebraic Multigrid]{Iterative Solvers - Algebraic Multigrid} % The short title appears at the bottom of every slide, the full title is only on the title page
 
 \author{Bernd Schwarzenbacher, Daniel Herold} % Your name
 \institute[TU Wien] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
@@ -130,7 +130,7 @@ $x^{new} = x^{old} + C^{-1} (b - Ax^{old})$
 \end{block}
 $C \dots$ preconditioner:
 \begin{itemize}
-  \item cheap matrix vector multiplikation with $C^{-1}$
+  \item cheap matrix-vector multiplikation with $C^{-1}$
   \item good approximation of $A$
 \end{itemize}
 \end{frame}
@@ -185,7 +185,7 @@ $P \dots$ prolongation matrix
 \begin{frame}
 \frametitle{AMG - Parallelization}
 \begin{itemize}
-  \item multigrid: transposed matrix-vector multiplication:
+  \item Multigrid: transposed matrix-vector multiplication
     $$P^{T} (b-Ax^{old})$$
   \item Gau\ss-Seidel: \\ $$\frac{1}{A_{jj}} \left(b_{j} - \sum_{k=1}^{j-1} A_{jk}
 x_k^{new} - \sum_{k=j}^{n} A_{jk} x_k^{old}\right)$$
@@ -243,7 +243,7 @@ problem: $A^T\cdot x=y$
 }
 
 \begin{frame}
-\frametitle{Transposed matrix vector multiplication}
+\frametitle{Transposed Matrix-Vector Multiplication}
 \textbf{problem with parallelization:}
 \begin{itemize}
 \item row indexing is necessary
