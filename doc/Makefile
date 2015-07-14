@@ -1,6 +1,6 @@
 all: doc.pdf presentation.pdf
 
-doc.pdf: doc.tex
+doc.pdf: doc.tex doc.bib
 	pdflatex doc.tex doc.pdf
 	bibtex doc
 	pdflatex doc.tex doc.pdf
