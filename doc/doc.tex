@@ -123,7 +123,7 @@ Concurrent reading and writing operations to one variable can lead to incorrect
 stored values as shown in figure~\ref{figure:parallelwriting}. Two
 tasks are trying to write at the same variable at almost the same time. The
 second task starts his procedure before task 1 has finished and overwrites the
-result of the first task. 
+result of the first task.
 
 \begin{figure}[ht]
 \label{figure:parallelwriting}
@@ -141,57 +141,53 @@ Some ideas to solve this problem are:
 \end{itemize}
 \end{samepage}
 
-All of this solutions efficiencies depend on the number of entries in the matrix.
-Less entries and a larger matrix result in a higher amount of calculations per
-time where a sequential solving of a matrix with a lot of nonzeroelements is
-faster than a parallel solution.
+All those solutions efficiency depend on the number of entries in the matrix.
+Less entries and a larger matrix result in higher amounts of calculations per
+time and thus are suited for parallel algorithms.
+Whereas a sequential algorithm fares better than a parallel solution for
+matrices with a high amount of nonzero elements for this problem.
 
-The \textbf{atomic} version is very straight forward. The idea is to avoid the problem
- shown in figure \ref{figure:parallelwriting} by making it atomic. This means
- that only one task is allowed to pass the section at the same time.
+The \textbf{atomic} version is very straight forward. The idea is to avoid the
+problem shown in figure~\ref{figure:parallelwriting} by making the operations
+atomic. This means that a task blocks the address it accesses till it is
+finished with its read-modify-write operation.
 
 \lstset{language=C++, numbers=none, captionpos=b,
-        caption={Transposed vector multiplication, atomic section}}
+        caption={Atomic section in the transposed vector multiplication.}}
 \begin{lstlisting}
-...
 #pragma omp atomic
           fy(colnr[j]) += s * data[j] * fx(i);
-...
 \end{lstlisting}
 
-This part is also the bottleneck of this algorithm, because every task has to pass this
-line and they lock each other.
+This part is the bottleneck of the algorithm, because every task has to has
+pass this line and they block each other.
 
-The \textbf{dynamic task partitioning} solves another problem of this code. {\em OMP for}
-(as used in the atomic version)
- splits the for-loop into a  static amount of iterations for each task. Due to the amount
- of calculations each task has to perform, some will be finished while others
-are still working. This relates to the specific structur of the matrix. The
- number of nonzeroelements in each row can be very different in AMG.
+The \textbf{dynamic task partitioning} solves another problem of this code.
+{\em OMP for} (as used in the atomic version) splits the for-loop into a
+evenly distributed amount of iterations for each task beforehand. Due to
+differing amount of calculations each task has to perform, some may finish
+faster than other tasks. This relates to the specific structure of matrices
+resulting in a finite element discretization, the number of nonzero elements
+per row can vary significantly.
 
-Instead it is possible to split the jobs dynamically. Tasks with less work to do will
-get another part of the calculation while others still do their first part.
-
-The time that is used for the dynamic assignment can be retrieved by the fair
-partitioning of the tasks. The number 100 demands, that not every single loop
- will be assigned dynamically but every 100 of them.
+Instead it is possible to split the jobs dynamically. Faster threads are
+assigned new iterations while slower tasks still work on the old iterations.
+The dynamic assignment produces some overhead, which can be mitigated by
+assigning chunks of iterations.
 
 \lstset{language=C++, numbers=none, captionpos=b,
-        caption={Dynamic for loop}}
+        caption={Dynamic for loop.}}
 \begin{lstlisting}
-...
 #pragma omp for schedule (dynamic, 100)
-...
 \end{lstlisting}
 
-The \textbf{balancing option} performs this action in a similar way, but not 
-during thefor-loop itself but at first. The time for the calculation of each line
-depends (as mentioned) on the number of nonzeroelements in this row. With a
-simple algorithm it is possible to  determine this number for each row of the
- matrix and split the loop due to this partitioning.
+The \textbf{balancing option} performs a similar assignment of iterations, but
+does so before the for-loop starts instead of a dynamic assignment. The work
+for the calculation of each row is approximated with the number of nonzero
+elements in this row and split the loop accordingly.
 
 \lstset{language=C++, numbers=left, captionpos=b,
-        caption={Transposed vector multiplication, static balancing}}
+        caption={Static balancing in the transposed vector multiplication.}}
 \begin{lstlisting}
 void TranMultBalance (double s, const BaseVector & x, BaseVector & y) const
   {
@@ -245,21 +241,15 @@ void TranMultBalance (double s, const BaseVector & x, BaseVector & y) const
 \end{lstlisting}
 
 Every method still has the same problem with the atomic operation in its
-essential part. To avoid this, we have to make sure that multiple tasks do not
-write on the same entry of the outcoming vector at the same time.
+essential part. We can avoid this by "\textbf{coloring}" each row of the matrix.
+Rows are assigned to the same color if they don't write on the same entries.
+Parallelization of this group is therefore possible, as no conflicting
+concurrent operations will occur. Thus it is possible to iterate through the
+colors sequentially and parallelize each color.
 
-To solve this,
- we will "\textbf{color}" each row of the matrix. A group of rows will get the same
-color, if they do not write on the same entries. Parallelization of this group
-will not cause the problem in figure \ref{figure:parallelwriting}.
-
-Not writing at the same entry is equivalent to not having
-any columns with nonzeroelements in common. If we have "the coloring of
-the matrix" we
- can iterate through the different colors sequential but parallelize every 
-loop through a group of same-colored-rows, because they will not interfere.
-
-Figure \ref{figure:coloring} gives an dempnstrative example of the coloring process.
+Not writing at the same entry is equivalent to not sharing any columns with
+nonzero elements. Figure~\ref{figure:coloring} shows an example of the
+coloring process.
 
 \begin{figure}[ht]\label{figure:coloring}
 \includegraphics[width=0.32\textwidth]{graphic/coloringT2.eps}\hfill\vline\hfill
@@ -274,15 +264,14 @@ Figure \ref{figure:coloring} gives an dempnstrative example of the coloring proc
 \caption{Coloring of a Simple Matrix}
 \end{figure}
 
-This is easy to perform for small matrices. For larger ones we iterate through 
-the matrix for every color and store the position of nonzeroelements for the
-specific color in a separate mask. Every new row can be compared to the
-mask and if all nonzeroentries of the row do not interfere with the mask
-it will be colored and the mask updated. As long as there are uncolored
-rows of the matrix new colors will be used.
-
-In practice a algorithm is used, which iterates through the matrix for 32 colors
-at once. 
+This is easy to perform for small matrices. To cope with larger matrices we
+iterate through the matrix for every color and store the position of blocked
+nonzero elements for the specific color in a mask.
+Each row is compared to the mask and if no nonzero entry of the row interferes
+with the already blocked entries, the row is added to the current color and the
+mask gets updated accordingly.
+As long as there are uncolored rows of the matrix new colors will be used.
+To further optimize this we use a mask for 32 colors at once.
 
 \lstset{language=C++, numbers=left, captionpos=b,
         caption={Coloring of a matrix for transposed vector multiplication}}
