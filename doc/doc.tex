@@ -96,7 +96,7 @@ void MultAddParallel w(double s, const BaseVector & x, BaseVector & y)
 
 \end{lstlisting}
 
-\subsection{Transposed Matrix Vector Multiplication}
+\subsection{Transposed Matrix Vector Multiplication}\label{section:trans}
 To provide the multiplication of a vector with the transposed matrix, a
 sequential algorithm is written in a similar way.
 
@@ -126,9 +126,8 @@ second task starts his procedure before task 1 has finished and overwrites the
 result of the first task.
 
 \begin{figure}[ht]
-\label{figure:parallelwriting}
 \includegraphics{graphic/parallel_writing_problem.pdf}
-\caption{Problem with Parallelization of Writing Processes}
+\caption{Problem with Parallelization of Writing Processes}\label{figure:parallelwriting}
 \end{figure}
 
 \begin{samepage}
@@ -251,7 +250,8 @@ Not writing at the same entry is equivalent to not sharing any columns with
 nonzero elements. Figure~\ref{figure:coloring} shows an example of the
 coloring process.
 
-\begin{figure}[ht]\label{figure:coloring}
+
+\begin{figure}[ht]
 \includegraphics[width=0.32\textwidth]{graphic/coloringT2.eps}\hfill\vline\hfill
 \includegraphics[width=0.32\textwidth]{graphic/coloringT3.eps}\hfill\vline\hfill
 \includegraphics[width=0.32\textwidth]{graphic/coloringT4.eps}
@@ -261,7 +261,7 @@ coloring process.
 \includegraphics[width=0.32\textwidth]{graphic/coloringT8.eps}\hfill\vline\hfill
 \includegraphics[width=0.32\textwidth]{graphic/coloringT9.eps}\hfill\vline\hfill
 \includegraphics[width=0.32\textwidth]{graphic/coloringT10.eps}
-\caption{Coloring of a Simple Matrix}
+\caption{Coloring of a Simple Matrix}\label{figure:coloring}
 \end{figure}
 
 This is easy to perform for small matrices. To cope with larger matrices we
@@ -388,12 +388,22 @@ $$ x_j^{new} = \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
 for $j = 1..n$. $K^{new}$ denotes the set of indices of new calculated entries
  of $x$, where $K^{old}$ denotes the old entries.
 
-To perform a parallel algorithm, we have to make sure, that parallel
-running tasks do not have to use entries of $x$ which are computed by other
-tasks at the same time. The order of computed entries is arbitrary as long as
-the method GSSmoothBack is able to compute them in the reverse order.
+The order of the calculation is arbitrary, it is not necessary that $x_1$ is
+calculated first, $x_2$ second and so on. But the implementing has to make
+sure the following is satisfied.
 
-In the end we implemented a coloring alghorithm.
+The order of the calculation has to be restorable. In AMG the algorithm is used
+to perform a Gauß-Seidel-Preconditioning and (after some prolongation) to do
+the same Gauß-Seidel-Preconditioning in reverse order again.
+
+Entries of the output vector $x$ have not to be calculated concurrently if they
+depend on each other. Similar to the main problem in chapter \ref{section:trans}  
+this would cause wrong entries.
+
+The problems with parallelization are very similar to chapter \ref{section:trans},
+ so the ideas for a solution are too.
+
+A coloring alghorithm can be used as well and is similar to implement.
 Similar to the transposed matrix vector multiplication we mark the rows which
 can run parallel without influencing them.
 
@@ -411,11 +421,55 @@ at the specific row we added to one color to determine which rows can also
  relate to it.
 
 The main advance of this method is, that the coloring process has to be
- done only once, whereas it is used by GSSmooth and GSSmoothBack as well.
+ done only once, whereas it is used by GSSmooth and GSSmoothBack as well
+(and the order is stored by the process itself, which was a precondition).
 
-As in the motivation mentioned, GSSmooth is called with matrices getting
- smaller and GSSmoothBack in reverse order on matrices getting larger.
- The improve of speed is shown in GRAFIK.
+For a small matrix the coloring process is demonstrated in figure
+\ref{figure:coloringGS}.
+
+\begin{figure}
+\includegraphics[width=0.32\textwidth]{graphic/coloringGS1.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringGS4.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringGS7.eps}
+\includegraphics[width=0.32\textwidth]{graphic/coloringGS8.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringGS9.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringGS10.eps}
+\caption{Coloring of a simple matrix.}\label{figure:coloringGS}
+\end{figure}
+
+\subsection{Improve of Speed}
+
+The target is to calculate the inverted matrix $A^{-1}$. As mentioned, the
+ AMG-Preconditioner is a combination of Gauß-Seidel and a
+projection which coarsens (by multiplying with the transposed
+prolongation matrix) the matrix. Theses steps are executed
+alternately until the matrix is small enough to invert it directly. Then it is refined to
+its original size and Gauß-Seidel is used in the reverse order between these steps.
+All together builds one step of the AMG-Preconditioner and many of them
+are executed until the iterated matrix is exact enough.
+
+The improve of speed by parallelization is given at these steps (transposed
+ multiplication and Gauß-Seidel). The coloring
+for both steps has to be done 
+separately, but can be used in every step of the AMG.
+
+Figure \ref{figure:sequ} shows a sequential call of AMG, whereas figure \ref{figure:par}
+shows a parallel call of AMG. Only one thread is working in the sequential part compared to
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{seq.png}
+    \caption{AMG sequential}\label{figure:sequ}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{iterations_trace.png}
+    \caption{AMG parallel}\label{figure:par}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{one_iteration.png}
+    \caption{AMG single parallel recursion}
+\end{figure}
 
 
 \lstset{language=C++, numbers=left, captionpos=b, breaklines=true,
@@ -618,20 +672,7 @@ void my_AMG_H1 :: Mult (const ngla::BaseVector & b, ngla::BaseVector & x) const
 
 \end{lstlisting}
 
-\begin{figure}
-    \includegraphics[width=1\textwidth]{seq.png}
-    \caption{AMG sequential}
-\end{figure}
 
-\begin{figure}
-    \includegraphics[width=1\textwidth]{iterations_trace.png}
-    \caption{AMG parallel}
-\end{figure}
-
-\begin{figure}
-    \includegraphics[width=1\textwidth]{one_iteration.png}
-    \caption{AMG single parallel recursion}
-\end{figure}
 
 \bibliography{doc}{}
 \bibliographystyle{plain}
