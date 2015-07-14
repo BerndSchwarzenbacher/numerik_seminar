@@ -123,10 +123,27 @@ To provide the multiplication of the transposed of a matrix and a given vector
 
 The difference is the dependency of a single outcoming entry. It is calculated
  by the entries of a column of the matrix - but because of the storage it is not
-possible to iterate through one column in an efficient way. If the algorithm
-has to iterate through one line of the matrices, simple parallelization would
-probably cause issues in some outcoming entries due to multiple writing
-performances at the same time.
+possible to iterate through one column in an efficient way. The iteration through 
+rows is no problem for the sequential code, but parallelization causes some
+problems.
+
+ If the algorithm has to iterate through one row of the matrix, simple 
+parallelization would probably cause issues in some outcoming entries
+ due to multiple writing performances at the same time. In particular it would
+possible that one task which iterates through the first rows of the matrix
+writes at one entry of the outcoming vector at the same time as another one
+does, which iterates through the lower part of the matrix.
+
+Reading and writing processes for the same variable at nearly the same 
+time can cause wrong values as shown in figure \ref{figure:parallelwriting}. Two
+tasks are trying to write at the same variable at nearly the same time. The second
+starts his procedure before task 1 has finished and overwrites the result of it.
+
+\begin{figure}[ht]
+\label{figure:parallelwriting}
+\includegraphics{graphic/parallel_writing_problem.pdf}
+\caption{Problem with Parallelization of Writing Processes}
+\end{figure}
 
 Some ideas to solve this problem are:
 
@@ -142,9 +159,11 @@ Some ideas to solve this problem are:
 All of this solutions efficiencies depend on the number of entries in the matrix.
 Less entries and a larger matrix result in a higher amount of calculations per
  time where a sequential solving of a matrix with a lot of nonzeroelements is
- faster than any parallel solution.
+ faster than a parallel solution.
 
-The atomic version is very straight forward:
+The \textbf{atomic} version is very straight forward. The idea is to avoid the problem
+ shown in figure \ref{figure:parallelwriting} by making it atomic. This means
+ that only one task is allowed to pass the section at the same time.
 
 \lstset{language=C++, numbers=none, captionpos=b,
         caption={Transposed vector multiplication, atomic section}}
@@ -155,14 +174,18 @@ The atomic version is very straight forward:
 ...
 \end{lstlisting}
 
-This is the bottleneck of this algorithm, because every task has to pass this
+This part is also the bottleneck of this algorithm, because every task has to pass this
 line and they lock each other.
 
-The dynamic task partitioning solves another problem of this code. {\em OMP for}
- splits the for-loop into static iterations for each task. Due to the amount
+The \textbf{dynamic task partitioning} solves another problem of this code. {\em OMP for}
+(as used in the atomic version)
+ splits the for-loop into a  static amount of iterations for each task. Due to the amount
  of calculations each task has to perform, some will be finished while others
 are still working. This relates to the specific structur of the matrix. The
- number of nonzeroelements in euch row can be very different in AMG.
+ number of nonzeroelements in each row can be very different in AMG.
+
+Instead it is possible to split the jobs dynamically. Tasks with less work to do will
+get another part of the calculation while others still do their first part.
 
 The time that is used for the dynamic assignment can be retrieved by the fair
 partitioning of the tasks. The number 100 demands, that not every single loop
@@ -176,11 +199,11 @@ partitioning of the tasks. The number 100 demands, that not every single loop
 ...
 \end{lstlisting}
 
-The balancing option performs this action in a similar way, but not during the
-for-loop itself but first of it. The time for the calculation of each line
+The \textbf{balancing option} performs this action in a similar way, but not 
+during thefor-loop itself but at first. The time for the calculation of each line
 depends (as mentioned) on the number of nonzeroelements in this row. With a
 simple algorithm it is possible to  determine this number for each row of the
- and split the loop due to this partitioning.
+ matrix and split the loop due to this partitioning.
 
 \lstset{language=C++, numbers=left, captionpos=b,
         caption={Transposed vector multiplication, static balancing}}
@@ -238,11 +261,43 @@ void TranMultBalance (double s, const BaseVector & x, BaseVector & y) const
 
 Every method still has the same problem with the atomic operation in its
 essential part. To avoid this, we have to make sure that multiple tasks do not
-write on the same entry of the outcoming vector at the same time. To solve this,
- we will "color" each row of the matrix. A group of rows will get the same
-color, if they do not write on the same entries. This is equivalent to not having
-any columns with nonzeroelements in common. With this information we can iterate through the different colors sequential but parallelize every loop through
- a group of same-colored-rows, because they will not interfere.
+write on the same entry of the outcoming vector at the same time.
+
+To solve this,
+ we will "\textbf{color}" each row of the matrix. A group of rows will get the same
+color, if they do not write on the same entries. Parallelization of this group
+will not cause the problem in figure \ref{figure:parallelwriting}.
+
+Not writing at the same entry is equivalent to not having
+any columns with nonzeroelements in common. If we have "the coloring of
+the matrix" we
+ can iterate through the different colors sequential but parallelize every 
+loop through a group of same-colored-rows, because they will not interfere.
+
+Figure \ref{figure:coloring} gives an dempnstrative example of the coloring process.
+
+\begin{figure}[ht]\label{figure:coloring}
+\includegraphics[width=0.32\textwidth]{graphic/coloringT2.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringT3.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringT4.eps}
+\includegraphics[width=0.32\textwidth]{graphic/coloringT5.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringT6.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringT7.eps}
+\includegraphics[width=0.32\textwidth]{graphic/coloringT8.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringT9.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringT10.eps}
+\caption{Coloring of a Simple Matrix}
+\end{figure}
+
+This is easy to perform for small matrices. For larger ones we iterate through 
+the matrix for every color and store the position of nonzeroelements for the
+specific color in a separate mask. Every new row can be compared to the
+mask and if all nonzeroentries of the row do not interfere with the mask
+it will be colored and the mask updated. As long as there are uncolored
+rows of the matrix new colors will be used.
+
+In practice a algorithm is used, which iterates through the matrix for 32 colors
+at once. 
 
 \lstset{language=C++, numbers=left, captionpos=b,
         caption={Coloring of a matrix for transposed vector multiplication}}
