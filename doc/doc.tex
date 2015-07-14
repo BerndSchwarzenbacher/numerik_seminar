@@ -23,7 +23,7 @@
 \tableofcontents
 \pagebreak
 
-\section{Motivation}
+\section{Motivation} \label{section:motiv}
 To solve big systems of linear equations the conjugate gradient method is the
 most used iterative method. For faster convergence speed the condition of the
 problem is further improved with a so-called preconditioner.
@@ -48,28 +48,27 @@ transposed matrix vector multiplication is needed to project onto the
 coarse space. See Listing~\ref{lst:mult} for more details on the algorithm.
 Those three points are subject to performance improvements by parallelization.
 
-\section{Sparsematrices}
+\section{Sparse Matrices}
 Most matrices are stored in the Compressed Column Storage (CCS) format.
-The commands {\em firsti[k]} and {\em lasti[k]} provide the position of the
-first and last entry of the row k in the indexvector. One
-iteration through one row ist very easy to provide.
+The commands {\em firsti[k]}\/ and {\em lasti[k]}\/ provide the position of the
+first and last entry of the row k in the index vector. One
+iteration through one row is very easy to provide.
 
 \lstset{language=C++, numbers=none, captionpos=b,
         caption={Row-iteration of sparsematrices }}
 \begin{lstlisting}
 for (int j = firsti[k]; j < lasti[k]; ++j)
-      {...}
-
+  {...}
 \end{lstlisting}
 
-The difficulty with sparsematrices is the iteration among any other order as
+The difficulty with sparse matrices is the iteration among any other order as
 the next section will show.
 
 \section{Matrix Vector Multiplication}
-The multiplication of a sparsematrix and a given vector is very simple.
+The multiplication of a sparse matrix and a given vector is very simple.
 The entry k of the output vector is given by the summation of the products
 of the matrix entries in the row k with the entries of the vector. In other
-words, one entry of the outcoming vector depends only on one row of the matrix
+words, one entry of the output vector depends only on one row of the matrix
 and vice versa.
 
 One of the difficulties of parallelization is given by multiple writing
@@ -134,8 +133,8 @@ result of the first task.
 Some ideas to solve this problem are:
 \begin{itemize}
 \item atomic writing process (easy to program, but very inefficient)
-\item atomic writing process with dynamic task partioning
-\item atomic writing process with static thread seperation
+\item atomic writing process with dynamic task partitioning
+\item atomic writing process with static thread separation
 \item matrix coloring without any atomic processes
 \end{itemize}
 \end{samepage}
@@ -162,7 +161,7 @@ This part is the bottleneck of the algorithm, because every task has to has
 pass this line and they block each other.
 
 The \textbf{dynamic task partitioning} solves another problem of this code.
-{\em OMP for} (as used in the atomic version) splits the for-loop into a
+{\em OMP for}\/ (as used in the atomic version) splits the for-loop into a
 evenly distributed amount of iterations for each task beforehand. Due to
 differing amount of calculations each task has to perform, some may finish
 faster than other tasks. This relates to the specific structure of matrices
@@ -195,34 +194,34 @@ void TranMultBalance (double s, const BaseVector & x, BaseVector & y) const
 
     int height = this->Height();
 
-    Array<int> thread_seperation;
-#pragma omp parallel //shared(thread_seperation)
+    Array<int> thread_separation;
+#pragma omp parallel //shared(thread_separation)
     {
       int num_threads = omp_get_num_threads();
 
 #pragma omp single
       {
-        thread_seperation = Array<int>(num_threads+1);
-        int seperation_step = ceil(this->nze / num_threads);
+        thread_separation = Array<int>(num_threads+1);
+        int separation_step = ceil(this->nze / num_threads);
 
         int thread_i = 1;
         for (int row = 0; row < height; ++row)
         {
-          if (firsti[row] >= thread_i * seperation_step)
+          if (firsti[row] >= thread_i * separation_step)
           {
-            thread_seperation[thread_i] = row;
+            thread_separation[thread_i] = row;
             ++thread_i;
           }
         }
-        thread_seperation[0] = 0;
-        thread_seperation[num_threads] = height;
+        thread_separation[0] = 0;
+        thread_separation[num_threads] = height;
       }
 
 #pragma omp for
       for (int thread_i = 1; thread_i <= num_threads; ++thread_i)
       {
-        for (int i = thread_seperation[thread_i-1];
-             i < thread_seperation[thread_i]; ++i)
+        for (int i = thread_separation[thread_i-1];
+             i < thread_separation[thread_i]; ++i)
         {
           int first = firsti [i];
           int last  = firsti [i+1];
@@ -377,33 +376,35 @@ void TranMultAdd4 (double s, const BaseVector & x, BaseVector & y)
 
 \end{lstlisting}
 
-\section{Gauß-Seidel-Method}
-To solve a linear equation system, we use a special preconditioner, the
-Gauß-Seidel-Method. This is similar to the Jacobi-Method, where computing
- the vector $Ax$ is necessary. The difference is,
-that we also use the new information optioned by previous computations of
-entries of the solution vector. In particular a new entry is given by
+\section{Gauß-Seidel Method}
+As mentioned in chapter~\ref{section:motiv} we use two Gauß-Seidel steps on
+each level. The Gauß-Seidel method is similar to the Jacobi method.
+Both methods need to compute the vector $Ax$. The difference is, that the
+Gauß-Seidel method also uses the new information obtained by previous
+computations of entries.
+In particular a new entry is given by:
 $$ x_j^{new} = \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
- x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right)$$
-for $j = 1..n$. $K^{new}$ denotes the set of indices of new calculated entries
- of $x$, where $K^{old}$ denotes the old entries.
+x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right) \qquad j = 1 \dots n$$
+$K^{new}$ denotes the index set of newly calculated entries
+of $x$ and $K^{old}$ denotes the index set of old entries.
+\cite{numerik} \cite{numpde}
 
 The order of the calculation is arbitrary, it is not necessary that $x_1$ is
 calculated first, $x_2$ second and so on. But the implementing has to make
 sure the following is satisfied.
 
 The order of the calculation has to be restorable. In AMG the algorithm is used
-to perform a Gauß-Seidel-Preconditioning and (after some prolongation) to do
-the same Gauß-Seidel-Preconditioning in reverse order again.
+to perform a Gauß-Seidel preconditioning and (after some prolongation) to do
+the same Gauß-Seidel preconditioning in reverse order again.
 
 Entries of the output vector $x$ have not to be calculated concurrently if they
-depend on each other. Similar to the main problem in chapter \ref{section:trans}  
+depend on each other. Similar to the main problem in chapter~\ref{section:trans}
 this would cause wrong entries.
 
-The problems with parallelization are very similar to chapter \ref{section:trans},
+The problems with parallelization are very similar to chapter~\ref{section:trans},
  so the ideas for a solution are too.
 
-A coloring alghorithm can be used as well and is similar to implement.
+A coloring algorithm can be used as well and is similar to implement.
 Similar to the transposed matrix vector multiplication we mark the rows which
 can run parallel without influencing them.
 
@@ -412,7 +413,7 @@ can run parallel without influencing them.
 At calculating the product $A_jx$ which modifies the entry $x_j$ (where $A_j$
 denotes the j-th row of the matrix $A$) every entry $x_k$ is used, where
  $A_{jk} \neq 0$. According to this, every row $A_j$, which should be added
-to an existing color has to have zeroelements on the positions $A_{jk}$ for
+to an existing color has to have zero elements on the positions $A_{jk}$ for
 all $k$ indices of current rows of this color.
 
 Instead of testing all remaining rows for this property, we use that $A$ is
@@ -424,8 +425,8 @@ The main advance of this method is, that the coloring process has to be
  done only once, whereas it is used by GSSmooth and GSSmoothBack as well
 (and the order is stored by the process itself, which was a precondition).
 
-For a small matrix the coloring process is demonstrated in figure
-\ref{figure:coloringGS}.
+For a small matrix the coloring process is demonstrated in
+figure~\ref{figure:coloringGS}.
 
 \begin{figure}
 \includegraphics[width=0.32\textwidth]{graphic/coloringGS1.eps}\hfill\vline\hfill
