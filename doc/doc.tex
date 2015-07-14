@@ -65,33 +65,30 @@ for (int j = firsti[k]; j < lasti[k]; ++j)
 The difficulty with sparsematrices is the iteration among any other order as
 the next section will show.
 
-\section{Matrix vector multiplication}
-
+\section{Matrix Vector Multiplication}
 The multiplication of a sparsematrix and a given vector is very simple.
-The entry k of the outcoming vector is given by the summation of the products
-of the matrixentries in the row k with the entries of the vector. In other
-words one entry of the outcoming vector depends only on one row of the matrix
+The entry k of the output vector is given by the summation of the products
+of the matrix entries in the row k with the entries of the vector. In other
+words, one entry of the outcoming vector depends only on one row of the matrix
 and vice versa.
 
 One of the difficulties of parallelization is given by multiple writing
 performances on a single variable at the same time. In the case of a simple
- matrix vector multiplication this is no big deal to handle: Each row has to be
+matrix vector multiplication this is no big deal to handle: each row has to be
 executed by a single task, there is no limitation in which order which task
- calculates 'his' vectorentry.
+calculates its vectorentry.
 
 \lstset{language=C++, numbers=left, captionpos=b,
-        caption={Matrix vector multiplication with parallel for section}}
+        caption={Matrix vector multiplication with parallel for section.}}
 \begin{lstlisting}
-void MultAddParallel (double s, const BaseVector & x, BaseVector & y) const  {
-
+void MultAddParallel w(double s, const BaseVector & x, BaseVector & y)
+{
 #pragma omp parallel for
-    for (int i = 0; i < this->Height(); ++i)
-    {
+    for (int i = 0; i < this->Height(); ++i) {
       int first = firsti [i];
       int last  = firsti [i+1];
 
-      for (int j = first; j < last; ++j)
-      {
+      for (int j = first; j < last; ++j) {
         y(i) += s * data[j] * x(colnr[j]);
       }
     }
@@ -99,37 +96,32 @@ void MultAddParallel (double s, const BaseVector & x, BaseVector & y) const  {
 
 \end{lstlisting}
 
-\subsection{Transposed matrix vector multiplication}
-
-To provide the multiplication of the transposed of a matrix and a given vector
- a sequential script is written in a similar way.
+\subsection{Transposed Matrix Vector Multiplication}
+To provide the multiplication of a vector with the transposed matrix, a
+sequential algorithm is written in a similar way.
 
 \lstset{language=C++, numbers=none, captionpos=b,
-        caption={Transposed vector multiplication}}
+        caption={Transposed vector multiplication algorithm.}}
 \begin{lstlisting}
-...
-    for (int i = 0; i < this->Height(); ++i)
-    {
+    for (int i = 0; i < this->Height(); ++i) {
       int first = firsti [i];
       int last  = firsti [i+1];
 
-      for (int j = first; j < last; ++j)
-      {
+      for (int j = first; j < last; ++j) {
         y(colnr[j]) += s * data[j] * x(i);
       }
     }
-...
 \end{lstlisting}
 
-The difference is the dependency of a single outcoming entry. It is calculated
- by the entries of a column of the matrix - but because of the storage it is not
-possible to iterate through one column in an efficient way. The iteration through 
-rows is no problem for the sequential code, but parallelization causes some
-problems.
+The difference to the previous algorithm is due to the dependencies of a single
+entry of the output vector. It is calculated by iterating through the entries
+of a matrix column. This is not efficient due to the CCS format.
+The access of distinct rows for one entrie is no problem for the sequential
+code, but parallelization causes some problems.
 
- If the algorithm has to iterate through one row of the matrix, simple 
+If the algorithm has to iterate through one row of the matrix, simple 
 parallelization would probably cause issues in some outcoming entries
- due to multiple writing performances at the same time. In particular it would
+due to multiple writing performances at the same time. In particular it would
 possible that one task which iterates through the first rows of the matrix
 writes at one entry of the outcoming vector at the same time as another one
 does, which iterates through the lower part of the matrix.
