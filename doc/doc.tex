@@ -76,7 +76,7 @@ One of the difficulties of parallelization is given by multiple writing
 performances on a single variable at the same time. In the case of a simple
 matrix vector multiplication this is no big deal to handle: each row has to be
 executed by a single task, there is no limitation in which order which task
-calculates its vectorentry.
+calculates its vector entry.
 
 \lstset{language=C++, numbers=left, captionpos=b,
         caption={Matrix vector multiplication with parallel for section.}}
@@ -114,22 +114,16 @@ sequential algorithm is written in a similar way.
 \end{lstlisting}
 
 The difference to the previous algorithm is due to the dependencies of a single
-entry of the output vector. It is calculated by iterating through the entries
-of a matrix column. This is not efficient due to the CCS format.
-The access of distinct rows for one entrie is no problem for the sequential
-code, but parallelization causes some problems.
-
-If the algorithm has to iterate through one row of the matrix, simple 
-parallelization would probably cause issues in some outcoming entries
-due to multiple writing performances at the same time. In particular it would
-possible that one task which iterates through the first rows of the matrix
-writes at one entry of the outcoming vector at the same time as another one
-does, which iterates through the lower part of the matrix.
-
-Reading and writing processes for the same variable at nearly the same 
-time can cause wrong values as shown in figure \ref{figure:parallelwriting}. Two
-tasks are trying to write at the same variable at nearly the same time. The second
-starts his procedure before task 1 has finished and overwrites the result of it.
+output vector entry. It is calculated by iterating through the entries
+of one matrix column. This is not efficient due to the CCS format.
+Therefore the algorithm has to iterate first through the matrix rows.
+The access of distinct entries per row is no problem for the sequential
+code, but simple parallelization causes issues.
+Concurrent reading and writing operations to one variable can lead to incorrect
+stored values as shown in figure~\ref{figure:parallelwriting}. Two
+tasks are trying to write at the same variable at almost the same time. The
+second task starts his procedure before task 1 has finished and overwrites the
+result of the first task. 
 
 \begin{figure}[ht]
 \label{figure:parallelwriting}
@@ -137,21 +131,20 @@ starts his procedure before task 1 has finished and overwrites the result of it.
 \caption{Problem with Parallelization of Writing Processes}
 \end{figure}
 
+\begin{samepage}
 Some ideas to solve this problem are:
-
 \begin{itemize}
-
 \item atomic writing process (easy to program, but very inefficient)
 \item atomic writing process with dynamic task partioning
 \item atomic writing process with static thread seperation
 \item matrix coloring without any atomic processes
-
 \end{itemize}
+\end{samepage}
 
 All of this solutions efficiencies depend on the number of entries in the matrix.
 Less entries and a larger matrix result in a higher amount of calculations per
- time where a sequential solving of a matrix with a lot of nonzeroelements is
- faster than a parallel solution.
+time where a sequential solving of a matrix with a lot of nonzeroelements is
+faster than a parallel solution.
 
 The \textbf{atomic} version is very straight forward. The idea is to avoid the problem
  shown in figure \ref{figure:parallelwriting} by making it atomic. This means
