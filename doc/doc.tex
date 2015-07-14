@@ -437,7 +437,7 @@ For a small matrix the coloring process is demonstrated in figure
 \caption{Coloring of a simple matrix.}\label{figure:coloringGS}
 \end{figure}
 
-\subsection{Improve of Speed}
+\subsection{Speedimprovment}
 
 The target is to calculate the inverted matrix $A^{-1}$. As mentioned, the
  AMG-Preconditioner is a combination of Gauß-Seidel and a
@@ -448,13 +448,22 @@ its original size and Gauß-Seidel is used in the reverse order between these st
 All together builds one step of the AMG-Preconditioner and many of them
 are executed until the iterated matrix is exact enough.
 
-The improve of speed by parallelization is given at these steps (transposed
+The improvement of speed by parallelization is given at these steps (transposed
  multiplication and Gauß-Seidel). The coloring
-for both steps has to be done 
-separately, but can be used in every step of the AMG.
+for both steps has to be done separately for every matrixdimension,
+ but can be used in every step of the AMG.
 
 Figure \ref{figure:sequ} shows a sequential call of AMG, whereas figure \ref{figure:par}
-shows a parallel call of AMG. Only one thread is working in the sequential part compared to
+shows a parallel call of AMG. Only one thread is working in the sequential part
+compared to 24 threads in the parallel.
+
+In figure \ref{figure:par} and \ref{figure:step} the red blocks mark a task of
+GSSmooth, the purple ones are the projection and prolongations and the green
+ones mark GSSmoothBack. In figure \ref{figure:step} a single step of the AMG
+is shown. The large matrix needs more colors and time to perform a GSSmoot-step.
+This can be seen at the red blocks at the beginning (only one color is calculated at 
+the same time, but its rows can be passed to various threads. The blocks are getting
+ smaller because less rows have the specific color.
 
 \begin{figure}
     \includegraphics[width=1\textwidth]{seq.png}
@@ -467,16 +476,34 @@ shows a parallel call of AMG. Only one thread is working in the sequential part 
 \end{figure}
 
 \begin{figure}
-    \includegraphics[width=1\textwidth]{one_iteration.png}
-    \caption{AMG single parallel recursion}
+    \includegraphics[width=1\textwidth]{undistributed_coloring_gs.png}
+    \caption{AMG single parallel recursion}\label{figure:step}
 \end{figure}
+
+Because of the matrix storage and the specific structur of the Vector-server its
+two processors have different speed of writing and reading at parts of the matrix. Due
+to this some colors are faster calculated by the first half of threads, and others by the
+other half. This comes up with the coloring process. Iteration through the matrix will color
+most of the first rows with the first colors and vice versa.
+
+A comparison of figure \ref{figure:step} and figure \ref{figure:stepdis} shows
+that most of the gray spaces between the blocks can be eliminated by minimizing the
+correspondence of rows and colors.
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{one_iteration.png}
+    \caption{AMG single parallel recursion with distribution}\label{figure:stepdis}
+\end{figure}
+
+\pagebreak
+
+\section{Code}
 
 
 \lstset{language=C++, numbers=left, captionpos=b, breaklines=true,
         caption={Multiplication Method of the AMG Preconditioner}}
 \begin{lstlisting}
-void my_AMG_H1 :: Mult (const ngla::BaseVector & b, ngla::BaseVector & x) const
-{
+void my_AMG_H1 :: Mult (const ngla::BaseVector & b, ngla::BaseVector & x) const {
   if (inv) {
     x = (*inv) * b;
     return;
