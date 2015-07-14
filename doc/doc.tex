@@ -7,14 +7,15 @@
 \usepackage{amsthm}
 \usepackage{listings}
 \usepackage{graphicx}
+\usepackage{cite}
 
 \usepackage[usenames,dvipsnames]{pstricks}
 \usepackage{epsfig}
 \usepackage{pst-grad} % For gradients
 \usepackage{pst-plot} % For axes
 
-\title{seminararbeit aus numerik oder so}
-\subtitle{parallel sparse zeug}
+\title{Seminararbeit Numerik}
+\subtitle{Iterative Solvers - Algebraic Multigrid}
 \author{Bernd Schwarzenbacher, Daniel Herold}
 
 \begin{document}
@@ -31,22 +32,23 @@ To solve big systems of linear equations the conjugate gradient method is the
 most used iterative method.
 For faster convergence speed the condition of the problem is
 improved with a so-called preconditioner.
-The original problem $b-Ax=0$ is substituted by the preconditioned problem
-$C^{-1} (b-Ax) = 0$ with preconditioner $C$.
-A simple choice is the Gauss-Seidel preconditioner.
+The original problem is substituted by the preconditioned problem:
+$$b-Ax = 0 \iff x + C^{-1} (b-Ax) = x$$
+Where the matrix $C$ denotes the preconditioner.
+A simple choice is the Gauss-Seidel preconditioner. \cite{numpde}
 
-The goal of the AMG (Algebraic Multi Grid) preconditioner is to combine several
+The goal of the AMG (Algebraic Multi Grid) preconditioner is, to combine several
 bad preconditioners to get a good preconditioner. To achieve this, the original
 matrix is coarsened recursively to smaller matrices (hence Multi Grid).
 Weighing the relative strength of the connecting vertices, a prolongation matrix
 is computed to project the problem on a coarser space. To determine which
 vertices should collapse, only the information in the system matrix is needed
 (hence Algebraic).
-On the coarser levels, big errors in the solution are faster corrected.
+On the coarser levels, smooth errors in the solution are corrected faster.
 On each level Gauß-Seidel preconditioners are used.
 Here lies a great potential to save time.
 
-On the coarsest level the problem is solved directly with the inverse matrix.
+On the coarsest level, the problem is solved directly with the inverse matrix.
 (Line 4-8).
 Otherwise we do a Gauß-Seidel smoothing forward in line 15.
 And if there is a coarser level, we calculate the current residuum and
@@ -613,4 +615,6 @@ As in the motivation mentioned, GSSmooth is called with matrices getting
 \end{figure}
 
 
+\bibliography{doc}{}
+\bibliographystyle{plain}
 \end{document}
