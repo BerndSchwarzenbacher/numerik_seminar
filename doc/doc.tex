@@ -8,6 +8,7 @@
 \usepackage{listings}
 \usepackage{graphicx}
 \usepackage{cite}
+%\usepackage{showlabels}
 
 \usepackage[usenames,dvipsnames]{pstricks}
 \usepackage{epsfig}
@@ -182,13 +183,170 @@ assigning chunks of iterations.
 The \textbf{balancing option} performs a similar assignment of iterations, but
 does so before the for-loop starts instead of a dynamic assignment. The work
 for the calculation of each row is approximated with the number of nonzero
-elements in this row and split the loop accordingly.
+elements in this row and split the loop accordingly. (see listing \ref{lst:tranbal}
 
-\lstset{language=C++, numbers=left, captionpos=b,
-        caption={Static balancing in the transposed vector multiplication.}}
+
+
+Every method still has the same problem with the atomic operation in its
+essential part. We can avoid this by "\textbf{coloring}" each row of the matrix.
+Rows are assigned to the same color if they don't write on the same entries.
+Parallelization of this group is therefore possible, as no conflicting
+concurrent operations will occur. Thus it is possible to iterate through the
+colors sequentially and parallelize each color.
+
+Not writing at the same entry is equivalent to not sharing any columns with
+nonzero elements. Figure~\ref{figure:coloring} shows an example of the
+coloring process.
+
+
+\begin{figure}[ht]
+\includegraphics[width=0.32\textwidth]{graphic/coloringT2.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringT3.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringT4.eps}
+\includegraphics[width=0.32\textwidth]{graphic/coloringT5.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringT6.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringT7.eps}
+\includegraphics[width=0.32\textwidth]{graphic/coloringT8.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringT9.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringT10.eps}
+\caption{Coloring of a Simple Matrix}\label{figure:coloring}
+\end{figure}
+
+This is easy to perform for small matrices. To cope with larger matrices we
+iterate through the matrix for every color and store the position of blocked
+nonzero elements for the specific color in a mask.
+Each row is compared to the mask and if no nonzero entry of the row interferes
+with the already blocked entries, the row is added to the current color and the
+mask gets updated accordingly.
+As long as there are uncolored rows of the matrix new colors will be used.
+To further optimize this we use a mask for 32 colors at once. (see listing \ref{lst:trancol}
+and \ref{lst:tranmul})
+
+
+
+\section{Gauß-Seidel Method}
+As mentioned in chapter~\ref{section:motiv} we use two Gauß-Seidel steps on
+each level. The Gauß-Seidel method is similar to the Jacobi method.
+Both methods need to compute the vector $Ax$. The difference is, that the
+Gauß-Seidel method also uses the new information obtained by previous
+computations of entries.
+In particular a new entry is given by:
+$$ x_j^{new} = \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
+x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right) \qquad j = 1 \dots n$$
+$K^{new}$ denotes the index set of newly calculated entries
+of $x$ and $K^{old}$ denotes the index set of old entries.
+\cite{numerik} \cite{numpde}
+
+The calculation order in the forward Gauß-Seidel precondition is arbitrary,
+but to achieve a symmetric preconditioner the backward smoothing needs to be
+in exact reverse order.
+
+Entries of the output vector $x$ must not be calculated concurrently if they
+depend on each other. As in chapter~\ref{section:trans} described, this would
+cause incorrect entries. The problems with parallelization are also very
+similar to chapter~\ref{section:trans}, as are the ideas to cope with them.
+
+A coloring algorithm can be used as well and is similar in its implementation.
+As with the transposed matrix vector multiplication we group the rows which
+may run parallel without influencing each other.
+
+\subsection{Coloring}
+To calculate the product $A_jx$ which modifies the entry $x_j$ (where $A_j$
+denotes the j-th row of the matrix $A$), for every $k$ with $A_{jk} \neq 0$,
+$x_k$ is used. According to this observation, every row $A_j$, which should be
+added to an existing color must not have any nonzero elements on the positions $A_{jk}$
+for all $k$ indices of rows marked with this color.
+
+Instead of testing all remaining rows for this property, we use that $A$ is
+symmetric: $A_{kj} = 0 \Leftrightarrow A_{jk} = 0$. Thus we only check
+the specific row we added to one color to determine which rows can also
+relate to it.
+
+The main advantage of this method is, that the coloring process has to be
+done only once, whereas it is used by GSSmooth and GSSmoothBack as well.
+Also the order of colors is stored by the process itself.
+
+For a small matrix the coloring process is demonstrated in
+figure~\ref{figure:coloringGS}.
+
+\begin{figure}
+\includegraphics[width=0.32\textwidth]{graphic/coloringGS1.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringGS4.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringGS7.eps}
+\includegraphics[width=0.32\textwidth]{graphic/coloringGS8.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringGS9.eps}\hfill\vline\hfill
+\includegraphics[width=0.32\textwidth]{graphic/coloringGS10.eps}
+\caption{Coloring of a simple matrix.}\label{figure:coloringGS}
+\end{figure}
+
+\subsection{Speed Improvement}
+As mentioned, the AMG preconditioner is a combination of the Gauß-Seidel
+preconditioner and intermediate projections onto coarser spaces
+by multiplying with the transposed prolongation matrix. These steps are
+executed alternately until the matrix is small enough to invert it directly.
+Then the correction is refined to its original size and backwards Gauß-Seidel is
+used in between these steps.
+This sums up to one step of the AMG-Preconditioner. Many of such steps are
+executed in succession until the solution is sufficiently exact. (see listing \ref{lst:mult})
+
+Speed improvements by parallelization are possible within Gauß-Seidel steps
+and the transposed matrix vector multiplication. The Gauß-Seidel coloring has to
+be done separately for each level before the CG method (see listing \ref{lst:jacobi}),
+ but can be used again
+in each CG iteration (listing \ref{lst:gss} and \ref{lst:gssb}). For the transposed matrix vector multiplication a balancing algorithm is used.
+
+Figure~\ref{figure:sequ} shows a CG method with sequential AMG, whereas
+figure~\ref{figure:par} shows it with parallel AMG\@.
+Only one thread is working in the sequential version compared to 24 threads in
+the parallel.
+
+In figure~\ref{figure:par} and~\ref{figure:step} the red blocks indicate a
+thread of forward Gauß-Seidel smoothing, the purple ones are projections and
+prolongations and the green ones indicate backward Gauß-Seidel smoothing.
+In figure~\ref{figure:step} a single step of the AMG is shown. The large matrix
+needs more time to perform a Gauß-Seidel step.
+This is indicated by the big red blocks at the beginning. Only one color is
+calculated at the same time, but its rows can be processed by several threads
+simultaneously.
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{seq.png}
+    \caption{AMG sequential}\label{figure:sequ}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{iterations_trace.png}
+    \caption{AMG parallel}\label{figure:par}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{undistributed_coloring_gs.png}
+    \caption{AMG single parallel recursion}\label{figure:step}
+\end{figure}
+
+Due to the matrix storage and the specific structure of the {\em Vector}\/
+server its two processors have different speed of writing and reading at parts
+of the matrix. Due to this some colors are faster calculated by the first half
+of threads, and others by the other half. This comes up with the coloring process. Iteration through the matrix will color
+most of the first rows with the first colors and vice versa.
+
+A comparison of figure \ref{figure:step} and figure \ref{figure:stepdis} shows
+that most of the gray spaces between the blocks can be eliminated by minimizing the
+correspondence of rows and colors. (see listing \ref{lst:jacobi})
+
+\begin{figure}
+    \includegraphics[width=1\textwidth]{one_iteration.png}
+    \caption{AMG single parallel recursion with distribution}\label{figure:stepdis}
+\end{figure}
+
+\pagebreak
+
+\section{Code}
+
+\lstset{language=C++, numbers=left, captionpos=b, breaklines=true,
+        caption={Static balancing in the transposed vector multiplication.},label=lst:tranbal}
 \begin{lstlisting}
-void TranMultBalance (double s, const BaseVector & x, BaseVector & y) const
-  {
+void TranMultBalance (double s, const BaseVector & x, BaseVector & y) const  {
     FlatVector<double> fx = x.FV<double> ();
     FlatVector<double> fy = y.FV<double> ();
 
@@ -238,42 +396,8 @@ void TranMultBalance (double s, const BaseVector & x, BaseVector & y) const
 
 \end{lstlisting}
 
-Every method still has the same problem with the atomic operation in its
-essential part. We can avoid this by "\textbf{coloring}" each row of the matrix.
-Rows are assigned to the same color if they don't write on the same entries.
-Parallelization of this group is therefore possible, as no conflicting
-concurrent operations will occur. Thus it is possible to iterate through the
-colors sequentially and parallelize each color.
-
-Not writing at the same entry is equivalent to not sharing any columns with
-nonzero elements. Figure~\ref{figure:coloring} shows an example of the
-coloring process.
-
-
-\begin{figure}[ht]
-\includegraphics[width=0.32\textwidth]{graphic/coloringT2.eps}\hfill\vline\hfill
-\includegraphics[width=0.32\textwidth]{graphic/coloringT3.eps}\hfill\vline\hfill
-\includegraphics[width=0.32\textwidth]{graphic/coloringT4.eps}
-\includegraphics[width=0.32\textwidth]{graphic/coloringT5.eps}\hfill\vline\hfill
-\includegraphics[width=0.32\textwidth]{graphic/coloringT6.eps}\hfill\vline\hfill
-\includegraphics[width=0.32\textwidth]{graphic/coloringT7.eps}
-\includegraphics[width=0.32\textwidth]{graphic/coloringT8.eps}\hfill\vline\hfill
-\includegraphics[width=0.32\textwidth]{graphic/coloringT9.eps}\hfill\vline\hfill
-\includegraphics[width=0.32\textwidth]{graphic/coloringT10.eps}
-\caption{Coloring of a Simple Matrix}\label{figure:coloring}
-\end{figure}
-
-This is easy to perform for small matrices. To cope with larger matrices we
-iterate through the matrix for every color and store the position of blocked
-nonzero elements for the specific color in a mask.
-Each row is compared to the mask and if no nonzero entry of the row interferes
-with the already blocked entries, the row is added to the current color and the
-mask gets updated accordingly.
-As long as there are uncolored rows of the matrix new colors will be used.
-To further optimize this we use a mask for 32 colors at once.
-
 \lstset{language=C++, numbers=left, captionpos=b,
-        caption={Coloring of a matrix for transposed vector multiplication}}
+        caption={Coloring of a matrix for transposed vector multiplication},label=lst:trancol}
 \begin{lstlisting}
 void Coloring ()
   {
@@ -345,7 +469,7 @@ void Coloring ()
 \end{lstlisting}
 
 \lstset{language=c++, numbers=left, captionpos=b,
-        caption={transposed vector multiplication by coloring a matrix}}
+        caption={transposed vector multiplication by coloring a matrix},label=lst:tranmul}
 \begin{lstlisting}
 void TranMultAdd4 (double s, const BaseVector & x, BaseVector & y)
   {
@@ -376,128 +500,8 @@ void TranMultAdd4 (double s, const BaseVector & x, BaseVector & y)
 
 \end{lstlisting}
 
-\section{Gauß-Seidel Method}
-As mentioned in chapter~\ref{section:motiv} we use two Gauß-Seidel steps on
-each level. The Gauß-Seidel method is similar to the Jacobi method.
-Both methods need to compute the vector $Ax$. The difference is, that the
-Gauß-Seidel method also uses the new information obtained by previous
-computations of entries.
-In particular a new entry is given by:
-$$ x_j^{new} = \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
-x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right) \qquad j = 1 \dots n$$
-$K^{new}$ denotes the index set of newly calculated entries
-of $x$ and $K^{old}$ denotes the index set of old entries.
-\cite{numerik} \cite{numpde}
-
-The calculation order in the forward Gauß-Seidel precondition is arbitrary,
-but to achieve a symmetric preconditioner the backward smoothing needs to be
-in exact reverse order.
-
-Entries of the output vector $x$ must not be calculated concurrently if they
-depend on each other. As in chapter~\ref{section:trans} described, this would
-cause incorrect entries. The problems with parallelization are also very
-similar to chapter~\ref{section:trans}, as are the ideas to cope with them.
-
-A coloring algorithm can be used as well and is similar in its implementation.
-As with the transposed matrix vector multiplication we group the rows which
-may run parallel without influencing each other.
-
-\subsection{Coloring}
-To calculate the product $A_jx$ which modifies the entry $x_j$ (where $A_j$
-denotes the j-th row of the matrix $A$), for every $k$ with $A_{jk} \neq 0$,
-$x_k$ is used. According to this observation, every row $A_j$, which should be
-added to an existing color has to have zero elements on the positions $A_{jk}$
-for all $k$ indices of rows marked with this color.?????
-
-Instead of testing all remaining rows for this property, we use that $A$ is
-symmetric: $A_{kj} = 0 \Leftrightarrow A_{jk} = 0$. Thus we only check
-the specific row we added to one color to determine which rows can also
-relate to it.
-
-The main advantage of this method is, that the coloring process has to be
-done only once, whereas it is used by GSSmooth and GSSmoothBack as well.
-Also the order of colors is stored by the process itself.
-
-For a small matrix the coloring process is demonstrated in
-figure~\ref{figure:coloringGS}.
-
-\begin{figure}
-\includegraphics[width=0.32\textwidth]{graphic/coloringGS1.eps}\hfill\vline\hfill
-\includegraphics[width=0.32\textwidth]{graphic/coloringGS4.eps}\hfill\vline\hfill
-\includegraphics[width=0.32\textwidth]{graphic/coloringGS7.eps}
-\includegraphics[width=0.32\textwidth]{graphic/coloringGS8.eps}\hfill\vline\hfill
-\includegraphics[width=0.32\textwidth]{graphic/coloringGS9.eps}\hfill\vline\hfill
-\includegraphics[width=0.32\textwidth]{graphic/coloringGS10.eps}
-\caption{Coloring of a simple matrix.}\label{figure:coloringGS}
-\end{figure}
-
-\subsection{Speed Improvement}
-As mentioned, the AMG preconditioner is a combination of the Gauß-Seidel
-preconditioner and intermediate projections onto coarser spaces
-by multiplying with the transposed prolongation matrix. These steps are
-executed alternately until the matrix is small enough to invert it directly.
-Then the correction is refined to its original size and backwards Gauß-Seidel is
-used in between these steps.
-This sums up to one step of the AMG-Preconditioner. Many of such steps are
-executed in succession until the solution is sufficiently exact.
-
-Speed improvements by parallelization are possible within Gauß-Seidel steps
-and the transposed matrix vector multiplication. The Gauß-Seidel coloring has to
-be done separately for each level before the CG method, but can be used again
-in each CG iteration. For the transposed matrix vector multiplication a
-balancing algorithm is used.
-
-Figure~\ref{figure:sequ} shows a CG method with sequential AMG, whereas
-figure~\ref{figure:par} shows it with parallel AMG\@.
-Only one thread is working in the sequential version compared to 24 threads in
-the parallel.
-
-In figure~\ref{figure:par} and~\ref{figure:step} the red blocks indicate a
-thread of forward Gauß-Seidel smoothing, the purple ones are projections and
-prolongations and the green ones indicate backward Gauß-Seidel smoothing.
-In figure~\ref{figure:step} a single step of the AMG is shown. The large matrix
-needs more time to perform a Gauß-Seidel step.
-This is indicated by the big red blocks at the beginning. Only one color is
-calculated at the same time, but its rows can be processed by several threads
-simultaneously.
-
-\begin{figure}
-    \includegraphics[width=1\textwidth]{seq.png}
-    \caption{AMG sequential}\label{figure:sequ}
-\end{figure}
-
-\begin{figure}
-    \includegraphics[width=1\textwidth]{iterations_trace.png}
-    \caption{AMG parallel}\label{figure:par}
-\end{figure}
-
-\begin{figure}
-    \includegraphics[width=1\textwidth]{undistributed_coloring_gs.png}
-    \caption{AMG single parallel recursion}\label{figure:step}
-\end{figure}
-
-Due to the matrix storage and the specific structure of the {\em Vector}\/
-server its two processors have different speed of writing and reading at parts
-of the matrix. Due to this some colors are faster calculated by the first half
-of threads, and others by the other half. This comes up with the coloring process. Iteration through the matrix will color
-most of the first rows with the first colors and vice versa.
-
-A comparison of figure \ref{figure:step} and figure \ref{figure:stepdis} shows
-that most of the gray spaces between the blocks can be eliminated by minimizing the
-correspondence of rows and colors.
-
-\begin{figure}
-    \includegraphics[width=1\textwidth]{one_iteration.png}
-    \caption{AMG single parallel recursion with distribution}\label{figure:stepdis}
-\end{figure}
-
-\pagebreak
-
-\section{Code}
-
-
 \lstset{language=C++, numbers=left, captionpos=b, breaklines=true,
-        caption={Multiplication Method of the AMG Preconditioner}}
+        caption={Multiplication Method of the AMG Preconditioner},label=lst:mult}
 \begin{lstlisting}
 void my_AMG_H1 :: Mult (const ngla::BaseVector & b, ngla::BaseVector & x) const {
   if (inv) {
@@ -525,14 +529,10 @@ void my_AMG_H1 :: Mult (const ngla::BaseVector & b, ngla::BaseVector & x) const 
 }
 \end{lstlisting}
 
-\label{lst:mult}
-\begin{figure}
-%\input{seminargraph.tex}
 
-\end{figure}
 
 \lstset{language=c++, numbers=left, captionpos=b,
-        caption={Gauß-Seidel coloring and balancing}}
+        caption={Gauß-Seidel coloring and balancing},label=lst:jacobi}
 \begin{lstlisting}
 
   void JacobiPrecond<TM,TV_ROW,TV_COL> :: Coloring ()
@@ -627,7 +627,7 @@ void my_AMG_H1 :: Mult (const ngla::BaseVector & b, ngla::BaseVector & x) const 
 \end{lstlisting}
 
 \lstset{language=c++, numbers=left, captionpos=b,
-        caption={Gauß-Seidel Smooth}}
+        caption={Gauß-Seidel Smooth},label=lst:gss}
 \begin{lstlisting}
 
 
@@ -662,7 +662,7 @@ void my_AMG_H1 :: Mult (const ngla::BaseVector & b, ngla::BaseVector & x) const 
 \end{lstlisting}
 
 \lstset{language=c++, numbers=left, captionpos=b,
-        caption={Gauß-Seidel SmoothBack}}
+        caption={Gauß-Seidel SmoothBack},label=lst:gssb}
 \begin{lstlisting}
   void JacobiPrecond<TM,TV_ROW,TV_COL> ::
   GSSmoothBack (BaseVector & x, const BaseVector & b) const
