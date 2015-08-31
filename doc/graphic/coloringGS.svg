@@ -4,91 +4,101 @@
     version="1.1" baseProfile="full">
     <defs/>
     <g>
-        <g latexdraw:type="square" id="id341">
-            <rect x="74.0" y="84.0" width="41.0" height="41.0"
-                latexdraw:borderPos="outer" stroke-width="1.0"
-                stroke="#fefefe" fill="#7bfefd"/>
-        </g>
-        <g latexdraw:type="square" id="id342">
-            <rect x="125.0" y="83.0" width="41.0" height="41.0"
-                latexdraw:borderPos="outer" stroke-width="1.0"
-                stroke="#fefefe" fill="#7bfefd"/>
-        </g>
-        <g latexdraw:type="square" id="id343">
-            <rect x="227.0" y="83.0" width="41.0" height="41.0"
-                latexdraw:borderPos="outer" stroke-width="1.0"
-                stroke="#fefefe" fill="#7bfefd"/>
-        </g>
-        <g latexdraw:type="square" id="id344">
-            <rect x="177.0" y="134.0" width="41.0" height="41.0"
+        <g latexdraw:type="square" id="id197">
+            <rect x="275.0" y="233.0" width="43.0" height="43.0"
                 latexdraw:borderPos="outer" stroke-width="1.0"
                 stroke="#fefefe" fill="#fe5f5f"/>
         </g>
-        <g latexdraw:type="square" id="id345">
-            <rect x="227.0" y="134.0" width="41.0" height="41.0"
+        <g latexdraw:type="square" id="id198">
+            <rect x="225.0" y="232.0" width="43.0" height="43.0"
                 latexdraw:borderPos="outer" stroke-width="1.0"
                 stroke="#fefefe" fill="#fe5f5f"/>
         </g>
-        <g latexdraw:type="text" id="id346" font-family="Dialog"
+        <g latexdraw:type="square" id="id199">
+            <rect x="350.0" y="234.0" width="41.0" height="41.0"
+                latexdraw:borderPos="outer" stroke-width="3.0"
+                stroke="red" fill="#fefefe"/>
+        </g>
+        <g latexdraw:type="square" id="id200">
+            <rect x="225.0" y="183.0" width="43.0" height="43.0"
+                latexdraw:borderPos="outer" stroke-width="1.0"
+                stroke="#fefefe" fill="#4eff4e"/>
+        </g>
+        <g latexdraw:type="square" id="id201">
+            <rect x="73.0" y="83.0" width="43.0" height="43.0"
+                latexdraw:borderPos="outer" stroke-width="1.0"
+                stroke="#fefefe" fill="#7bfefd"/>
+        </g>
+        <g latexdraw:type="square" id="id202">
+            <rect x="124.0" y="82.0" width="43.0" height="43.0"
+                latexdraw:borderPos="outer" stroke-width="1.0"
+                stroke="#fefefe" fill="#7bfefd"/>
+        </g>
+        <g latexdraw:type="square" id="id203">
+            <rect x="226.0" y="82.0" width="43.0" height="43.0"
+                latexdraw:borderPos="outer" stroke-width="1.0"
+                stroke="#fefefe" fill="#7bfefd"/>
+        </g>
+        <g latexdraw:type="square" id="id204">
+            <rect x="176.0" y="133.0" width="43.0" height="43.0"
+                latexdraw:borderPos="outer" stroke-width="1.0"
+                stroke="#fefefe" fill="#fe5f5f"/>
+        </g>
+        <g latexdraw:type="square" id="id205">
+            <rect x="226.0" y="133.0" width="43.0" height="43.0"
+                latexdraw:borderPos="outer" stroke-width="1.0"
+                stroke="#fefefe" fill="#fe5f5f"/>
+        </g>
+        <g latexdraw:type="text" id="id206" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="240.0">
             <text x="240.0" y="161.0"><![CDATA[3]]></text>
         </g>
-        <g latexdraw:type="square" id="id348">
+        <g latexdraw:type="square" id="id208">
             <rect x="350.0" y="84.0" width="41.0" height="41.0"
-                latexdraw:borderPos="outer" stroke-width="1.0"
-                stroke="#fefefe" fill="#7bfefd"/>
+                latexdraw:borderPos="outer" stroke-width="3.0"
+                stroke="#00fcff" fill="#fefefe"/>
         </g>
-        <g latexdraw:type="square" id="id349">
+        <g latexdraw:type="square" id="id209">
             <rect x="350.0" y="135.0" width="41.0" height="41.0"
-                latexdraw:borderPos="outer" stroke-width="1.0"
-                stroke="#fefefe" fill="#fe5f5f"/>
+                latexdraw:borderPos="outer" stroke-width="3.0"
+                stroke="red" fill="#fefefe"/>
         </g>
-        <g latexdraw:type="square" id="id350">
-            <rect x="125.0" y="184.0" width="41.0" height="41.0"
-                latexdraw:borderPos="outer" stroke-width="1.0"
-                stroke="#fefefe" fill="#4eff4e"/>
-        </g>
-        <g latexdraw:type="square" id="id351">
-            <rect x="177.0" y="185.0" width="41.0" height="41.0"
+        <g latexdraw:type="square" id="id210">
+            <rect x="124.0" y="183.0" width="43.0" height="43.0"
                 latexdraw:borderPos="outer" stroke-width="1.0"
                 stroke="#fefefe" fill="#4eff4e"/>
         </g>
-        <g latexdraw:type="square" id="id352">
-            <rect x="278.0" y="184.0" width="41.0" height="41.0"
+        <g latexdraw:type="square" id="id211">
+            <rect x="176.0" y="184.0" width="43.0" height="43.0"
                 latexdraw:borderPos="outer" stroke-width="1.0"
                 stroke="#fefefe" fill="#4eff4e"/>
         </g>
-        <g latexdraw:type="square" id="id353">
+        <g latexdraw:type="square" id="id212">
+            <rect x="277.0" y="183.0" width="43.0" height="43.0"
+                latexdraw:borderPos="outer" stroke-width="1.0"
+                stroke="#fefefe" fill="#4eff4e"/>
+        </g>
+        <g latexdraw:type="square" id="id213">
             <rect x="350.0" y="185.0" width="41.0" height="41.0"
-                latexdraw:borderPos="outer" stroke-width="1.0"
-                stroke="#fefefe" fill="#4eff4e"/>
+                latexdraw:borderPos="outer" stroke-width="3.0"
+                stroke="#06ff00" fill="#fefefe"/>
         </g>
-        <g latexdraw:type="square" id="id354">
-            <rect x="350.0" y="235.0" width="41.0" height="41.0"
-                latexdraw:borderPos="outer" stroke-width="1.0"
-                stroke="#fefefe" fill="#fe5f5f"/>
-        </g>
-        <g latexdraw:type="square" id="id355">
-            <rect x="227.0" y="232.0" width="41.0" height="41.0"
-                latexdraw:borderPos="outer" stroke-width="1.0"
-                stroke="#fefefe" fill="#fe5f5f"/>
-        </g>
-        <g latexdraw:type="square" id="id356">
+        <g latexdraw:type="square" id="id214">
             <rect x="350.0" y="35.0" width="41.0" height="41.0"
+                latexdraw:borderPos="outer" stroke-width="3.0"
+                stroke="red" fill="#fefefe"/>
+        </g>
+        <g latexdraw:type="square" id="id215">
+            <rect x="73.0" y="31.0" width="43.0" height="43.0"
                 latexdraw:borderPos="outer" stroke-width="1.0"
                 stroke="#fefefe" fill="#fe5f5f"/>
         </g>
-        <g latexdraw:type="square" id="id357">
-            <rect x="74.0" y="32.0" width="41.0" height="41.0"
+        <g latexdraw:type="square" id="id216">
+            <rect x="124.0" y="33.0" width="43.0" height="43.0"
                 latexdraw:borderPos="outer" stroke-width="1.0"
                 stroke="#fefefe" fill="#fe5f5f"/>
         </g>
-        <g latexdraw:type="square" id="id358">
-            <rect x="125.0" y="34.0" width="41.0" height="41.0"
-                latexdraw:borderPos="outer" stroke-width="1.0"
-                stroke="#fefefe" fill="#fe5f5f"/>
-        </g>
-        <g id="id359" latexdraw:type="grid"
+        <g id="id217" latexdraw:type="grid"
             latexdraw:XLabelsSouth="true" latexdraw:YLabelsWest="true"
             latexdraw:gridUnit="1.0" latexdraw:gridEnd="5.0 5.0"
             latexdraw:gridStart="0.0 0.0" latexdraw:origin="0.0 0.0" transform="translate(71.0 279.0)">
@@ -108,47 +118,47 @@
                 <line x1="0.0" x2="250.0" y1="-250.0" y2="-250.0"/>
             </g>
         </g>
-        <g latexdraw:type="text" id="id361" font-family="Dialog"
+        <g latexdraw:type="text" id="id219" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="91.0625">
             <text x="91.0625" y="59.0"><![CDATA[2]]></text>
         </g>
-        <g latexdraw:type="text" id="id363" font-family="Dialog"
+        <g latexdraw:type="text" id="id221" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="141.5">
             <text x="141.5" y="59.0"><![CDATA[3]]></text>
         </g>
-        <g latexdraw:type="text" id="id365" font-family="Dialog"
+        <g latexdraw:type="text" id="id223" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="142.0">
             <text x="142.0" y="110.0"><![CDATA[4]]></text>
         </g>
-        <g latexdraw:type="text" id="id367" font-family="Dialog"
+        <g latexdraw:type="text" id="id225" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="190.390625">
             <text x="190.390625" y="160.765625"><![CDATA[1]]></text>
         </g>
-        <g latexdraw:type="text" id="id369" font-family="Dialog"
+        <g latexdraw:type="text" id="id227" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="293.0">
             <text x="293.0" y="209.765625"><![CDATA[4]]></text>
         </g>
-        <g latexdraw:type="text" id="id371" font-family="Dialog"
+        <g latexdraw:type="text" id="id229" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="141.484375">
             <text x="141.484375" y="209.765625"><![CDATA[5]]></text>
         </g>
-        <g latexdraw:type="text" id="id373" font-family="Dialog"
+        <g latexdraw:type="text" id="id231" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="240.5">
             <text x="240.5" y="260.0"><![CDATA[4]]></text>
         </g>
-        <g latexdraw:type="text" id="id375" font-family="Dialog"
+        <g latexdraw:type="text" id="id233" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="191.0">
             <text x="191.0" y="210.0"><![CDATA[3]]></text>
         </g>
-        <g latexdraw:type="text" id="id377" font-family="Dialog"
+        <g latexdraw:type="text" id="id235" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="91.0">
             <text x="91.0" y="110.234375"><![CDATA[3]]></text>
         </g>
-        <g latexdraw:type="text" id="id379" font-family="Dialog"
+        <g latexdraw:type="text" id="id237" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="239.984375">
             <text x="239.984375" y="110.0"><![CDATA[5]]></text>
         </g>
-        <g id="id381" latexdraw:type="grid"
+        <g id="id239" latexdraw:type="grid"
             latexdraw:XLabelsSouth="true" latexdraw:YLabelsWest="true"
             latexdraw:gridUnit="1.0" latexdraw:gridEnd="1.0 5.0"
             latexdraw:gridStart="0.0 0.0" latexdraw:origin="0.0 0.0" transform="translate(345.0 279.0)">
@@ -164,41 +174,49 @@
                 <line x1="0.0" x2="50.0" y1="-250.0" y2="-250.0"/>
             </g>
         </g>
-        <g latexdraw:type="text" id="id383" font-family="Dialog"
+        <g latexdraw:type="text" id="id241" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="358.0">
             <text x="358.0" y="58.765625"><![CDATA[x1]]></text>
         </g>
-        <g latexdraw:type="text" id="id385" font-family="Dialog"
+        <g latexdraw:type="text" id="id243" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="358.0">
             <text x="358.0" y="110.234375"><![CDATA[x2]]></text>
         </g>
-        <g latexdraw:type="text" id="id387" font-family="Dialog"
+        <g latexdraw:type="text" id="id245" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="358.0">
             <text x="358.0" y="161.0"><![CDATA[x3]]></text>
         </g>
-        <g latexdraw:type="text" id="id389" font-family="Dialog"
+        <g latexdraw:type="text" id="id247" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="358.0">
             <text x="358.0" y="209.765625"><![CDATA[x4]]></text>
         </g>
-        <g latexdraw:type="text" id="id391" font-family="Dialog"
+        <g latexdraw:type="text" id="id249" font-family="Dialog"
             fill="black" font-size="18" latexdraw:x="358.0">
             <text x="358.0" y="260.0"><![CDATA[x5]]></text>
         </g>
-        <g latexdraw:type="line" id="id393">
+        <g latexdraw:type="line" id="id251">
             <line x1="76.0" x2="76.0" y1="88.0" y2="272.0"
-                stroke-width="3.0" stroke="#fd5858" latexdraw:rotationAngle="0.0"/>
+                stroke-width="4.0" stroke="#fd5858" latexdraw:rotationAngle="0.0"/>
         </g>
-        <g latexdraw:type="line" id="id394">
+        <g latexdraw:type="line" id="id252">
             <line x1="177.0" x2="177.0" y1="185.0" y2="272.0"
-                stroke-width="3.0" stroke="#fd5858" latexdraw:rotationAngle="0.0"/>
+                stroke-width="4.0" stroke="#fd5858" latexdraw:rotationAngle="0.0"/>
         </g>
-        <g latexdraw:type="line" id="id395">
+        <g latexdraw:type="line" id="id253">
             <line x1="127.0" x2="127.0" y1="135.0" y2="272.0"
-                stroke-width="3.0" stroke="#58fdfd" latexdraw:rotationAngle="0.0"/>
+                stroke-width="4.0" stroke="#58fdfd" latexdraw:rotationAngle="0.0"/>
         </g>
-        <g latexdraw:type="line" id="id396">
+        <g latexdraw:type="line" id="id254">
             <line x1="226.0" x2="226.0" y1="232.0" y2="273.0"
-                stroke-width="3.0" stroke="#5bfd58" latexdraw:rotationAngle="0.0"/>
+                stroke-width="4.0" stroke="#5bfd58" latexdraw:rotationAngle="0.0"/>
+        </g>
+        <g latexdraw:type="text" id="id255" font-family="Dialog"
+            fill="black" font-size="18" latexdraw:x="242.0625">
+            <text x="242.0625" y="209.0"><![CDATA[2]]></text>
+        </g>
+        <g latexdraw:type="text" id="id257" font-family="Dialog"
+            fill="black" font-size="18" latexdraw:x="293.0625">
+            <text x="293.0625" y="261.0"><![CDATA[5]]></text>
         </g>
     </g>
     <metadata>
@@ -223,7 +241,7 @@
                 <latexdraw:x>57</latexdraw:x>
                 <latexdraw:y>21</latexdraw:y>
             </latexdraw:position>
-            <latexdraw:dividerPosition>0.5844155844155844</latexdraw:dividerPosition>
+            <latexdraw:dividerPosition>0.6355996944232238</latexdraw:dividerPosition>
             <latexdraw:displayCodePanel>true</latexdraw:displayCodePanel>
             <latexdraw:displayXScale>true</latexdraw:displayXScale>
             <latexdraw:displayYScale>true</latexdraw:displayYScale>

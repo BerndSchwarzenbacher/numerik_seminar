@@ -50,7 +50,7 @@ coarse space. See Listing~\ref{lst:mult} for more details on the algorithm.
 Those three points are subject to performance improvements by parallelization.
 
 \section{Sparse Matrices}
-Most matrices are stored in the Compressed Column Storage (CCS) format.
+Most matrices are stored in the Compressed Row Storage (CRS) format.
 The commands {\em firsti[k]}\/ and {\em lasti[k]}\/ provide the position of the
 first and last entry of the row k in the index vector. One
 iteration through one row is very easy to provide.
@@ -115,7 +115,7 @@ sequential algorithm is written in a similar way.
 
 The difference to the previous algorithm is due to the dependencies of a single
 output vector entry. It is calculated by iterating through the entries
-of one matrix column. This is not efficient due to the CCS format.
+of one matrix column. This is not efficient due to the CRS format.
 Therefore the algorithm has to iterate first through the matrix rows.
 The access of distinct entries per row is no problem for the sequential
 code, but simple parallelization causes issues.
@@ -131,7 +131,7 @@ result of the first thread.
 \end{figure}
 
 \begin{samepage}
-Some ideas to solve this problem are:
+Some approaches to solve this problem are:
 \begin{itemize}
 \item atomic writing process (easy to program, but very inefficient)
 \item atomic writing process with dynamic thread partitioning
@@ -276,7 +276,7 @@ figure~\ref{figure:coloringGS}.
 \includegraphics[width=0.32\textwidth]{graphic/coloringGS8.eps}\hfill\vline\hfill
 \includegraphics[width=0.32\textwidth]{graphic/coloringGS9.eps}\hfill\vline\hfill
 \includegraphics[width=0.32\textwidth]{graphic/coloringGS10.eps}
-\caption{Coloring of a simple matrix.}\label{figure:coloringGS}
+\caption{Coloring of a Simple Matrix for the Gauß-Seidel Algorithm.}\label{figure:coloringGS}
 \end{figure}
 
 \subsection{Speed Improvement}
@@ -294,6 +294,13 @@ and the transposed matrix vector multiplication. The Gauß-Seidel coloring has t
 be done separately for each level before the CG method (see listing \ref{lst:jacobi}),
  but can be used again
 in each CG iteration (listing \ref{lst:gss} and \ref{lst:gssb}). For the transposed matrix vector multiplication a balancing algorithm is used.
+
+To measure and visualize the time of these steps a trace explorer can be used. \em Vite\em\footnote{http://vite.gforge.inria.fr} is a tool to visualize execution traces in Pajé
+ or OTF format for debugging and profiling parallel or distributed applications. 
+The work of every thread is shown in a single row. Sections in the code have different but specific
+colors, so it is obvious which parts of the algorithm took most of the calculating time and
+which threads work more and which less.
+
 
 Figure~\ref{figure:sequ} shows a CG method with sequential AMG, whereas
 figure~\ref{figure:par} shows it with parallel AMG\@.
