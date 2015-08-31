@@ -25,17 +25,35 @@
 \pagebreak
 
 \section{Motivation} \label{section:motiv}
-To solve big systems of linear equations in form of sparse positive-definite
-matrices arising from finite-element discretization of partial differential
-equations, the conjugate gradient method is the most used iterative method.
+Iterative methods are used to solve big systems of linear equations in form of
+sparse positive-definite matrices arising from finite-element discretization of
+partial differential equations.
+Those method are based on substituting the original problem by the fixed-point
+equation:
+$$b-Ax = 0 \iff x + \tau C^{-1} (b-Ax) = x$$
+where $C$ is an invertible matrix.
+
+From this formulation, one can immidiately derive the
+{\em Richardson Iteration}\/:
+
+start value $x_{0}$ \\
+for $j = 0, 1, 2, \dots$ \\
+\quad $x^{j+1} = x^{j} + C^{-1} (b - Ax^{j})$
+
 For faster convergence speed the condition of the problem is further improved
 with a so-called preconditioner.
-The original problem is therefore substituted by the preconditioned problem:
-$$b-Ax = 0 \iff x + \tau C^{-1} (b-Ax) = x$$
-Where the matrix $C$ denotes the preconditioner.
+Where the matrix $C$ denotes the so-called preconditioner, for which the goal
+is to improve the condition of the problem to obtain faster convergence speed.
+It should fullfill two major conditions:
+* cheap matrix-vector multiplication with $C^{-1}$
+* good approxomiation of $A$
 
-The Algebraic Multigrid (AMG) method combines several bad preconditioners to
-obtain a good preconditioner in total. It belongs to the family of general
+For choices of specific preconditioners see ~\label{section:gsm}.
+
+In practise the conjugate gradient method is the most used iterative method.
+
+The Algebraic Multigrid (AMG) method combines several preconditioners to
+obtain a optimal preconditioner in total. It belongs to the family of general
 Multigrid (MG) methods which recursively coarsen the original matrix and
 project the problem on this coarser spaces by use of a prolongation matrix.
 On the coarser levels, low frequency errors in the solution are corrected
@@ -226,7 +244,7 @@ and \ref{lst:tranmul})
 
 
 
-\section{Gauß-Seidel Method}
+\section{Gauß-Seidel Method} \label{section:gs}
 As mentioned in chapter~\ref{section:motiv} we use two Gauß-Seidel steps on
 each level. The Gauß-Seidel method is similar to the Jacobi method.
 Both methods need to compute the vector $Ax$. The difference is, that the
@@ -298,7 +316,7 @@ be done separately for each level before the CG method (see listing \ref{lst:jac
 in each CG iteration (listing \ref{lst:gss} and \ref{lst:gssb}). For the transposed matrix vector multiplication a balancing algorithm is used.
 
 To measure and visualize the time of these steps a trace explorer can be used. \em Vite\em\footnote{http://vite.gforge.inria.fr} is a tool to visualize execution traces in Pajé
- or OTF format for debugging and profiling parallel or distributed applications. 
+ or OTF format for debugging and profiling parallel or distributed applications.
 The work of every thread is shown in a single row. Sections in the code have different but specific
 colors, so it is obvious which parts of the algorithm took most of the calculating time and
 which threads work more and which less.
