@@ -5,6 +5,8 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{amsthm}
+\usepackage{algorithmic}
+\usepackage{algorithm}
 \usepackage{listings}
 \usepackage{graphicx}
 \usepackage{cite}
@@ -16,7 +18,7 @@
 \usepackage{pst-plot} % For axes
 
 \title{Seminararbeit Numerik}
-\subtitle{Iterative Solvers - Algebraic Multigrid}
+\subtitle{Iterative Solvers - Algebraic Multi-grid}
 \author{Bernd Schwarzenbacher, Daniel Herold}
 
 \begin{document}
@@ -25,55 +27,100 @@
 \pagebreak
 
 \section{Motivation} \label{section:motiv}
+\subsection{Iterative Solvers} \label{section:iter}
 Iterative methods are used to solve big systems of linear equations in form of
-sparse positive-definite matrices arising from finite-element discretization of
-partial differential equations.
+matrices.
+In practise the conjugate gradient method is the most used iterative method for
+the often sparse positive-definite matrices arising from finite-element
+discretization of partial differential equations.
 Those method are based on substituting the original problem by the fixed-point
 equation:
 $$b-Ax = 0 \iff x + \tau C^{-1} (b-Ax) = x$$
 where $C$ is an invertible matrix.
 
 From this formulation, one can immidiately derive the
-{\em Richardson Iteration}\/:
+{\em Richardson Iteration}\/, which is the simplest iterative method and is
+used here to illustrate some essential aspects:
 
-start value $x_{0}$ \\
-for $j = 0, 1, 2, \dots$ \\
-\quad $x^{j+1} = x^{j} + C^{-1} (b - Ax^{j})$
+\begin{algorithm}
+\caption{Richardson Iteration}
+\begin{algorithmic}
+  \STATE \text{start value} \: $x_{0}$
+  \FOR{$j = 0, 1, 2, \dots$}
+    \STATE $x_{j+1} = x_{j} + C^{-1} (b - Ax_{j})$
+  \ENDFOR
+\end{algorithmic}
+\end{algorithm}
 
-For faster convergence speed the condition of the problem is further improved
-with a so-called preconditioner.
-Where the matrix $C$ denotes the so-called preconditioner, for which the goal
-is to improve the condition of the problem to obtain faster convergence speed.
+The matrix $C$ denotes the so-called preconditioner, which is used is to
+improve the condition of the problem to obtain faster convergence speed.
 It should fullfill two major conditions:
-* cheap matrix-vector multiplication with $C^{-1}$
-* good approxomiation of $A$
+\begin{itemize}
+\item cheap matrix-vector multiplication with $C^{-1}$
+\item good approxomiation of $A$
+\end{itemize}
 
-For choices of specific preconditioners see ~\label{section:gsm}.
+The first approach is for $C$ is to take the diagonal of $A$ as the
+preconditioner:
+$$C = diag(A)$$
+This constitudes the Jacobi method:
+$$ x_j^{new} = x_j^{old} + \frac{1}{A_{jj}} \left(b_{j} -
+               \sum_{k} A_{jk} x_k^{old}\right)
+               \qquad j = 1 \dots n$$
+It can be altered to use the newly computed entries aswell. This gives rise to
+the Gauss-Seidel method, which is described in more detail in
+chapter~\ref{section:gs}.
+\cite{iterative}
 
-In practise the conjugate gradient method is the most used iterative method.
 
-The Algebraic Multigrid (AMG) method combines several preconditioners to
-obtain a optimal preconditioner in total. It belongs to the family of general
-Multigrid (MG) methods which recursively coarsen the original matrix and
-project the problem on this coarser spaces by use of a prolongation matrix.
-On the coarser levels, low frequency errors in the solution are corrected
-faster. The AMG method uses only the information in the system matrix to
-compute the coarsening and further the projection matrix. It does so by
-weighting the relative strength of connecting vertices to determine which
-vertices should collapse on the next level.
-\cite{iterative} \cite{multigrid}
+\subsection{Algebraic Multi-Grid}
+The Multi-grid (MG) method now seeks to combine the smoothing of high
+frequency errors by the Jacobi or Gauß-Seidel method with a second method which
+better addresses lower frequency errors.
 
-In the application of the AMG preconditioner we use one forward and one
-backward Gauß-Seidel preconditioner per level. Additionally a
-transposed matrix vector multiplication is needed to project onto the
-coarse space. See Listing~\ref{lst:mult} for more details on the algorithm.
-Those three points are subject to performance improvements by parallelization.
+Therefore a prolongation matrix $P$ is introduced, which for a basic example
+can look like:
+$$P =
+\begin{pmatrix}
+  1 & 0 & 0 & 0 \\
+  1 & 0 & 0 & 0 \\
+  0 & 1 & 0 & 0 \\
+  0 & 1 & 0 & 0 \\
+  0 & 0 & 1 & 0 \\
+  0 & 0 & 0 & 1 \\
+  0 & 0 & 0 & 1 \\
+  0 & 0 & 0 & 1 \\
+\end{pmatrix}
+$$
+
+Now there are several approaches to come up with a prolongation matrix.
+The Algebraic Multi-grid (AMG) method we addopted uses only the information
+in the matrix $A$ to compute the coarsening and then the projection matrix.
+It does so by weighting the relative strength of connecting vertices to
+determine which vertices should collapse on the next level.
+
+Once the prolongation matrix is computed it is used to compute the update in a
+step of an iterative method similar to the preconditioners described in
+chapter~\ref{section:iter}.
+First the transposed prolongation matrix projects the residuum on a
+coarser space, where the problem can be solved directly and then the computed
+update gets prolongated back onto the fine space by multiplication with $P$.
+An iterative step with two levels is thus described by:
+$$x^{new} = x^{old} + P (P^{T} A P)^{-1} P^{T} (b - A x^{old})$$
+
+The combination with the Gauß-Seidel method is provided by solving the problem
+recursively on multiple levels and applying a forward and backward smoothing
+step on each level. Additionally a transposed matrix vector multiplication
+is needed to project onto the coarse space.
+See Listing~\ref{lst:mult} for more details on the AMG algorithm.
+Those three points are subject to performance improvements by parallelization
+which is the main point we address.
 
 \section{Sparse Matrices}
-Most matrices are stored in the Compressed Row Storage (CRS) format.
-The commands {\em firsti[k]}\/ and {\em lasti[k]}\/ provide the position of the
-first and last entry of the row k in the index vector. One
-iteration through one row is very easy to provide.
+In our case the sparse matrices are stored in the Compressed Row Storage (CRS)
+format. The commands {\em firsti[k]}\/ and {\em lasti[k]}\/ provide the
+position of the first and last entry of the row k in the index vector.
+An iteration through one row is very easy to provide:
 
 \lstset{language=C++, numbers=none, captionpos=b,
         caption={Row-iteration of sparsematrices }}
@@ -147,7 +194,8 @@ result of the first thread.
 
 \begin{figure}[ht]
 \includegraphics{graphic/parallel_writing_problem.pdf}
-\caption{Problem with Parallelization of Writing Processes}\label{figure:parallelwriting}
+\caption{Problem with Parallelization of Writing Processes}
+\label{figure:parallelwriting}
 \end{figure}
 
 \begin{samepage}
@@ -251,11 +299,12 @@ Both methods need to compute the vector $Ax$. The difference is, that the
 Gauß-Seidel method also uses the new information obtained by previous
 computations of entries.
 In particular a new entry is given by:
-$$ x_j^{new} = \frac{1}{A_{jj}} \left(b_{j} - \sum_{k \in K^{new}}A_{jk}
-x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}\right) \qquad j = 1 \dots n$$
+$$ x_j^{new} = x_j^{old} + \frac{1}{A_{jj}} \left(b_{j} -
+  \sum_{k \in K^{new}}A_{jk} x_k^{new} - \sum_{k \in K^{old}}A_{jk} x_k^{old}
+  \right) \qquad j = 1 \dots n$$
 $K^{new}$ denotes the index set of newly calculated entries
 of $x$ and $K^{old}$ denotes the index set of old entries.
-\cite{numerik} \cite{numpde}
+\cite{iterative}
 
 The calculation order in the forward Gauß-Seidel precondition is arbitrary,
 but to achieve a symmetric preconditioner the backward smoothing needs to be
