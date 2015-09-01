@@ -30,7 +30,7 @@
 \subsection{Iterative Solvers} \label{section:iter}
 Iterative methods are used to solve big systems of linear equations in form of
 matrices.
-In practise the conjugate gradient method is the most used iterative method for
+In practice the conjugate gradient (CG) method is the most used iterative method for
 the often sparse positive-definite matrices arising from finite-element
 discretization of partial differential equations.
 Those method are based on substituting the original problem by the fixed-point
@@ -38,7 +38,7 @@ equation:
 $$b-Ax = 0 \iff x + \tau C^{-1} (b-Ax) = x$$
 where $C$ is an invertible matrix.
 
-From this formulation, one can immidiately derive the
+From this formulation, one can immediately derive the
 {\em Richardson Iteration}\/, which is the simplest iterative method and is
 used here to illustrate some essential aspects:
 
@@ -54,20 +54,20 @@ used here to illustrate some essential aspects:
 
 The matrix $C$ denotes the so-called preconditioner, which is used is to
 improve the condition of the problem to obtain faster convergence speed.
-It should fullfill two major conditions:
+It should fulfill two major conditions:
 \begin{itemize}
 \item cheap matrix-vector multiplication with $C^{-1}$
-\item good approxomiation of $A$
+\item good approximation of $A$
 \end{itemize}
 
 The first approach is for $C$ is to take the diagonal of $A$ as the
 preconditioner:
 $$C = diag(A)$$
-This constitudes the Jacobi method:
+This constitutes the Jacobi method:
 $$ x_j^{new} = x_j^{old} + \frac{1}{A_{jj}} \left(b_{j} -
                \sum_{k} A_{jk} x_k^{old}\right)
                \qquad j = 1 \dots n$$
-It can be altered to use the newly computed entries aswell. This gives rise to
+It can be altered to use the newly computed entries as well. This gives rise to
 the Gauss-Seidel method, which is described in more detail in
 chapter~\ref{section:gs}.
 \cite{iterative}
@@ -94,7 +94,7 @@ $$P =
 $$
 
 Now there are several approaches to come up with a prolongation matrix.
-The Algebraic Multi-grid (AMG) method we addopted uses only the information
+The Algebraic Multi-grid (AMG) method we adopted uses only the information
 in the matrix $A$ to compute the coarsening and then the projection matrix.
 It does so by weighting the relative strength of connecting vertices to
 determine which vertices should collapse on the next level.
@@ -115,6 +115,7 @@ is needed to project onto the coarse space.
 See Listing~\ref{lst:mult} for more details on the AMG algorithm.
 Those three points are subject to performance improvements by parallelization
 which is the main point we address.
+\cite{multigrid}
 
 \section{Sparse Matrices}
 In our case the sparse matrices are stored in the Compressed Row Storage (CRS)
@@ -251,7 +252,7 @@ assigning chunks of iterations.
 The \textbf{balancing option} performs a similar assignment of iterations, but
 does so before the for-loop starts instead of a dynamic assignment. The work
 for the calculation of each row is approximated with the number of nonzero
-elements in this row and split the loop accordingly. (see listing \ref{lst:tranbal}
+elements in this row and split the loop accordingly. (see listing~\ref{lst:tranbal}
 
 
 
@@ -287,8 +288,9 @@ Each row is compared to the mask and if no nonzero entry of the row interferes
 with the already blocked entries, the row is added to the current color and the
 mask gets updated accordingly.
 As long as there are uncolored rows of the matrix new colors will be used.
-To further optimize this we use a mask for 32 colors at once. (see listing \ref{lst:trancol}
-and \ref{lst:tranmul})
+To further optimize this we use a mask for 32 colors at once.
+(see listing~\ref{lst:trancol}
+and~\ref{lst:tranmul})
 
 
 
@@ -345,7 +347,8 @@ figure~\ref{figure:coloringGS}.
 \includegraphics[width=0.32\textwidth]{graphic/coloringGS8.eps}\hfill\vline\hfill
 \includegraphics[width=0.32\textwidth]{graphic/coloringGS9.eps}\hfill\vline\hfill
 \includegraphics[width=0.32\textwidth]{graphic/coloringGS10.eps}
-\caption{Coloring of a Simple Matrix for the Gauß-Seidel Algorithm.}\label{figure:coloringGS}
+\caption{Coloring of a Simple Matrix for the Gauß-Seidel Algorithm.}
+\label{figure:coloringGS}
 \end{figure}
 
 \subsection{Speed Improvement}
@@ -356,20 +359,24 @@ executed alternately until the matrix is small enough to invert it directly.
 Then the correction is refined to its original size and backwards Gauß-Seidel is
 used in between these steps.
 This sums up to one step of the AMG-Preconditioner. Many of such steps are
-executed in succession until the solution is sufficiently exact. (see listing \ref{lst:mult})
+executed as a part of the CG method until the solution is sufficiently exact.
+(see listing~\ref{lst:mult})
 
 Speed improvements by parallelization are possible within Gauß-Seidel steps
 and the transposed matrix vector multiplication. The Gauß-Seidel coloring has to
-be done separately for each level before the CG method (see listing \ref{lst:jacobi}),
- but can be used again
-in each CG iteration (listing \ref{lst:gss} and \ref{lst:gssb}). For the transposed matrix vector multiplication a balancing algorithm is used.
+be done separately for each level before the CG method
+(see listing~\ref{lst:jacobi}), but can be used again
+in each CG iteration (listing~\ref{lst:gss} and~\ref{lst:gssb}).
+For the transposed matrix vector multiplication a balancing algorithm is used.
 
-To measure and visualize the time of these steps a trace explorer can be used. \em Vite\em\footnote{http://vite.gforge.inria.fr} is a tool to visualize execution traces in Pajé
- or OTF format for debugging and profiling parallel or distributed applications.
-The work of every thread is shown in a single row. Sections in the code have different but specific
-colors, so it is obvious which parts of the algorithm took most of the calculating time and
-which threads work more and which less.
-
+To measure and visualize the time of these steps a trace explorer can be used.
+{\em Vite\footnote{http://vite.gforge.inria.fr}}\/ is a tool to visualize
+execution traces in Pajé or OTF format for debugging and profiling parallel or
+distributed applications.
+The work of every thread is shown in a single row. Sections in the code have
+different but specific colors, so it is obvious which parts of the algorithm
+took most of the computing time and how the work is distributed among the
+threads.
 
 Figure~\ref{figure:sequ} shows a CG method with sequential AMG, whereas
 figure~\ref{figure:par} shows it with parallel AMG\@.
@@ -400,15 +407,19 @@ simultaneously.
     \caption{AMG single parallel recursion}\label{figure:step}
 \end{figure}
 
-Due to the matrix storage and the specific structure of the {\em Vector}\/
-server its two processors have different speed of writing and reading at parts
-of the matrix. Due to this some colors are faster calculated by the first half
-of threads, and others by the other half. This comes up with the coloring process. Iteration through the matrix will color
-most of the first rows with the first colors and vice versa.
+Due to the matrix being stored split in half on to the specific structure of
+the {\em Vector}\/ server, its two nodes have different speed of writing and
+reading at parts of the matrix.
+Depending on the tread to node correspondence, some colors are faster
+calculated by the first half of threads, and others by the other half.
+This emerges from the coloring process. When iterating over the matrix rows,
+the colors tend to cluster, as it is unlikely that rows have columns in common.
+To mitigate this effect we iterate with an offset over the matrix rows in the
+coloring process.
 
-A comparison of figure \ref{figure:step} and figure \ref{figure:stepdis} shows
+A comparison of figure~\ref{figure:step} and figure~\ref{figure:stepdis} shows
 that most of the gray spaces between the blocks can be eliminated by minimizing the
-correspondence of rows and colors. (see listing \ref{lst:jacobi})
+correspondence of rows and colors. (see listing~\ref{lst:jacobi})
 
 \begin{figure}
     \includegraphics[width=1\textwidth]{one_iteration.png}
@@ -420,96 +431,266 @@ correspondence of rows and colors. (see listing \ref{lst:jacobi})
 \section{Code}
 
 \lstset{language=C++, numbers=left, captionpos=t, breaklines=true,
-        caption={Static balancing in the transposed vector multiplication. The seperation of the matrix 
-is calculated based on the number of non-zero elements in the matrix. Each thread has to do nearly 
-the same amount of work. },label=lst:tranbal}
+        caption={Static balancing in the transposed vector multiplication.},label=lst:tranbal}
 \begin{lstlisting}
-void TranMultBalance (double s, const BaseVector & x, BaseVector & y) const  {
-    FlatVector<double> fx = x.FV<double> ();
-    FlatVector<double> fy = y.FV<double> ();
+// The separation of the matrix is calculated based on the number
+// of non-zero elements in the matrix. Each thread has to do almost
+// the same amount of work.
+void TranMultBalance (double s, const BaseVector & x, BaseVector & y) const
+{
+  FlatVector<double> fx = x.FV<double> ();
+  FlatVector<double> fy = y.FV<double> ();
 
-    int height = this->Height();
+  int height = this->Height();
 
-    Array<int> thread_separation;
-#pragma omp parallel 
-    {
-      int num_threads = omp_get_num_threads();
+  Array<int> thread_separation;
+#pragma omp parallel
+  {
+    int num_threads = omp_get_num_threads();
 
 #pragma omp single
-      {
-        thread_separation = Array<int>(num_threads+1);
-        int separation_step = ceil(this->nze / num_threads); //load for one thread
+    {
+      thread_separation = Array<int>(num_threads+1);
+      // load for one thread
+      int separation_step = ceil(this->nze / num_threads);
 
-// find section of rows in the matrix for each thread
-        int thread_i = 1;
-        for (int row = 0; row < height; ++row)
+      // find section of rows in the matrix for each thread
+      int thread_i = 1;
+      for (int row = 0; row < height; ++row)
+      {
+        if (firsti[row] >= thread_i * separation_step)
         {
-          if (firsti[row] >= thread_i * separation_step)
-          {
-            thread_separation[thread_i] = row;
-            ++thread_i;
-          }
+          thread_separation[thread_i] = row;
+          ++thread_i;
         }
-        thread_separation[0] = 0;
-        thread_separation[num_threads] = height;
       }
+      thread_separation[0] = 0;
+      thread_separation[num_threads] = height;
+    }
 
-#pragma omp for    //parallelization of the transposed matrix-vector-multiplication based on the previous calculated thread seperation
-      for (int thread_i = 1; thread_i <= num_threads; ++thread_i)
+// parallelization of the transposed matrix-vector-multiplication based on the
+// previous calculated thread separation
+#pragma omp for
+    for (int thread_i = 1; thread_i <= num_threads; ++thread_i)
+    {
+      for (int i = thread_separation[thread_i-1];
+            i < thread_separation[thread_i]; ++i)
       {
-        for (int i = thread_separation[thread_i-1];
-             i < thread_separation[thread_i]; ++i)
-        {
-          int first = firsti [i];
-          int last  = firsti [i+1];
+        int first = firsti [i];
+        int last  = firsti [i+1];
 
-          for (int j = first; j < last; ++j)
-          {
+        for (int j = first; j < last; ++j)
+        {
 #pragma omp atomic
-            fy(colnr[j]) += s * data[j] * fx(i);
-          }
+          fy(colnr[j]) += s * data[j] * fx(i);
         }
       }
     }
   }
+}
 
 \end{lstlisting}
 
 \lstset{language=C++, numbers=left, captionpos=t,
-        caption={Coloring of a matrix for transposed vector multiplication},label=lst:trancol}
+        caption={Coloring of a matrix for transposed vector multiplication},
+        label=lst:trancol}
 \begin{lstlisting}
 void Coloring ()
+{
+  int height = this->Height();
+  int width = this->Width();
+
+  Array<int> row_color(height);  // storage of the colors for each row
+  row_color = -1;
+
+  int maxcolor = 0;
+  int basecol = 0;
+
+  Array<unsigned int> mask(width);  // 32-bit masks for each column
+
+  int found = 0;
+
+  do
   {
-    int height = this->Height();
-    int width = this->Width();
+    mask = 0;
 
-    Array<int> row_color(height);   //storage of the colors for each row
-    row_color = -1;
-
-    int maxcolor = 0;
-    int basecol = 0;
-
-    Array<unsigned int> mask(width);   //32-bit masks for each column
-
-    int found = 0;
-
-    do
+    for (int row = 0; row < height; ++row)
     {
-      mask = 0;
+      // next row if row already has a color
+      if (row_color[row] >= 0) continue;
 
-      for (int row = 0; row < height; ++row)   //iterate over rows
+      int first = firsti [row];
+      int last  = firsti [row+1];
+
+      unsigned check = 0;
+
+      // check is the union of all mask bits corresponding
+      // to nze's in the row
+      for (int i = first; i < last; ++i)  // iterate over entries of the row
+        check |= mask[colnr[i]];
+
+
+      // find next free color
+      if (check != UINT_MAX)
       {
-        if (row_color[row] >= 0) continue;   //continue if row already has a color
+        found++;
+        unsigned checkbit = 1;
+        int color = basecol;
+        while (check & checkbit)
+        {
+          color++;
+          checkbit *= 2;
+        }
 
-        int first = firsti [row];
-        int last  = firsti [row+1];
+        row_color[row] = color;  // set color to current row
+        if (color > maxcolor) maxcolor = color;
+
+        for (int i = first; i < last; ++i)
+          mask[colnr[i]] |= checkbit;  // update mask
+      }
+    }
+
+    basecol += 8*sizeof(unsigned int);
+  }
+  while (found < height);
+
+  // count rows per color
+  Array<int> cntcol(maxcolor+1);
+  cntcol = 0;
+  for (int row = 0; row < height; ++row)
+    ++cntcol[row_color[row]];
+
+  coloring_ = table<int>(cntcol);
+
+  cntcol = 0;
+  // construct mapping of rows to colors for the iteration
+  for (int row = 0; row < height; ++row)
+    coloring_[row_color[row]][cntcol[row_color[row]]++] = row;
+
+  std::cout << "needed " << maxcolor+1 << " colors" << std::endl;
+}
+
+\end{lstlisting}
+
+\lstset{language=c++, numbers=left, captionpos=t,
+        caption={transposed vector multiplication by coloring a matrix},
+        label=lst:tranmul}
+\begin{lstlisting}
+void TranMultAdd4 (double s, const BaseVector & x, BaseVector & y)
+{
+  FlatVector<double> fx = x.FV<double> ();
+  FlatVector<double> fy = y.FV<double> ();
+
+  Coloring();
+
+#pragma omp parallel
+  {
+    // iterate sequential over colors
+    for (auto color : coloring_)
+    {
+      // iterate parallel over corresponding rows
+#pragma omp for
+      for (int i = 0; i < color.Size(); ++i)
+      {
+        int first = firsti [color[i]];
+        int last  = firsti [color[i]+1];
+
+        for (int j = first; j < last; ++j)
+        {
+          fy(colnr[j]) += s * data[j] * fx(color[i]);
+        }
+      }
+    }
+  }
+}
+
+
+\end{lstlisting}
+
+\lstset{language=C++, numbers=left, captionpos=t, breaklines=true,
+        caption={Multiplication Method of the AMG Preconditioner},label=lst:mult}
+\begin{lstlisting}
+void my_AMG_H1 :: Mult (const ngla::BaseVector & b, ngla::BaseVector & x) const
+{
+  // direct solve at lowest level
+  if (inv) {
+    x = (*inv) * b;
+    return;
+  }
+
+  auto residuum = pmat->CreateVector();
+  auto coarse_x = coarsemat->CreateVector();
+  auto coarse_residuum = coarsemat->CreateVector();
+
+  x = 0;
+  jacobi->GSSmooth (x, b);  // one Gauss-Seidel step
+
+  if (recAMG) {
+    residuum = b - (*pmat) * x;
+    coarse_residuum = ngla::Transpose (*prol) * residuum;  // coarsening
+
+    // recursive solving of coarser problem
+    recAMG->Mult(coarse_residuum, coarse_x);
+
+    x += (*prol) * coarse_x;  // prolongate back to fine grid
+  }
+
+  jacobi->GSSmoothBack (x, b);  // Gauss-Seidel back
+}
+\end{lstlisting}
+
+
+
+\lstset{language=c++, numbers=left, captionpos=t,
+        caption={Gauß-Seidel coloring and balancing},label=lst:jacobi}
+\begin{lstlisting}
+
+void JacobiPrecond<TM,TV_ROW,TV_COL> :: Coloring ()
+{
+  int height = mat.Height();
+  int width = mat.Width();
+
+  Array<int> row_color(height);  // storage of colors for each row
+  row_color = -1;
+
+  int maxcolor = 0;
+  int basecol = 0;
+
+  Array<unsigned int> mask(width);  // 32-bit masks for each column
+
+  int found = 0;
+
+  int num_threads = task_manager->GetNumThreads();
+
+  do
+  {
+    mask = 0;
+
+    int block_size = ceil((double)height / (double)num_threads);
+
+    // iterate over blocks to get rows of the whole matrix
+    // for every color
+    for (int block_row = 0; block_row < block_size; ++block_row)
+    {
+      for (int threadi = 0; threadi < num_threads; ++threadi)
+      {
+        int row = block_row + threadi * block_size;
+        if (row >= height) break;
+
+        // next row if row already has a color
+        if (row_color[row] >= 0) continue;
+
+        int first = mat.firsti [row];
+        int last  = mat.firsti [row+1];
 
         unsigned check = 0;
-        for (int i = first; i < last; ++i)   //iterate over entries of the row
-          check |= mask[colnr[i]];  //check is the union of all mask bits corresponding to nze's in the row
 
+        // check is the union of all mask bits corresponding
+        // to nze's in the row
+        for (int i = first; i < last; ++i)  // iterate over entries of the row
+          check |= mask[mat.colnr[i]];
 
-//find next free color
+        // find the next possible color
         if (check != UINT_MAX)
         {
           found++;
@@ -521,251 +702,101 @@ void Coloring ()
             checkbit *= 2;
           }
 
-          row_color[row] = color;   //set color to current row
+          row_color[row] = color;  // set the color to the current row
           if (color > maxcolor) maxcolor = color;
 
-          for (int i = first; i < last; ++i)
-            mask[colnr[i]] |= checkbit;   //update mask
+          mask[row] |= checkbit;  // update the mask
         }
       }
-
-      basecol += 8*sizeof(unsigned int); // 32;
     }
-    while (found < height);
 
-    Array<int> cntcol(maxcolor+1);
-    cntcol = 0;
-    for (int row = 0; row < height; ++row)
-      ++cntcol[row_color[row]];   //count rows per color
-
-    coloring_ = table<int>(cntcol);
-
-    cntcol = 0;
-    for (int row = 0; row < height; ++row)
-      coloring_[row_color[row]][cntcol[row_color[row]]++] = row;   //contruct mapping of rows to colors for the iteration
-
-    std::cout << "needed " << maxcolor+1 << " colors" << std::endl;
+    basecol += 8*sizeof(unsigned int);
   }
+  while (found < height);
 
-\end{lstlisting}
+  Array<int> cntcol(maxcolor+1);
+  cntcol = 0;
+  for (int row = 0; row < height; ++row)
+    ++cntcol[row_color[row]];  // count rows per color
 
-\lstset{language=c++, numbers=left, captionpos=t,
-        caption={transposed vector multiplication by coloring a matrix},label=lst:tranmul}
-\begin{lstlisting}
-void TranMultAdd4 (double s, const BaseVector & x, BaseVector & y)
+  coloring_ = Table<int>(cntcol);
+
+  cntcol = 0;
+  // construct colors to row mapping
+  for (int row = 0; row < height; ++row)
+    coloring_[row_color[row]][cntcol[row_color[row]]++] = row;
+
+  balancing_.SetSize (maxcolor+1);
+  for (auto c : Range (balancing_))
   {
-    FlatVector<double> fx = x.FV<double> ();
-    FlatVector<double> fy = y.FV<double> ();
-
-    Coloring();
-
-#pragma omp parallel
-    {
-      for (auto color : coloring_)   //iterate sequential over colors
+    balancing_[c].Calc (coloring_[c].Size(),
+      [&] (int bi)
       {
-#pragma omp for   //iterate parallel over corresponding rows
-        for (int i = 0; i < color.Size(); ++i)
-        {
-          int first = firsti [color[i]];
-          int last  = firsti [color[i]+1];
-
-          for (int j = first; j < last; ++j)
-          {
-            fy(colnr[j]) += s * data[j] * fx(color[i]);
-          }
-        }
-      }
-    }
+        return 5 + mat.GetRowIndices(coloring_[c][bi]).Size();
+      });
   }
 
-
-\end{lstlisting}
-
-\lstset{language=C++, numbers=left, captionpos=t, breaklines=true,
-        caption={Multiplication Method of the AMG Preconditioner},label=lst:mult}
-\begin{lstlisting}
-void my_AMG_H1 :: Mult (const ngla::BaseVector & b, ngla::BaseVector & x) const {
-  if (inv) {
-    x = (*inv) * b;
-    return;
-  }   //direct solve at lowest level
-
-  auto residuum = pmat->CreateVector();
-  auto coarse_x = coarsemat->CreateVector();
-  auto coarse_residuum = coarsemat->CreateVector();
-
-  x = 0;
-  jacobi->GSSmooth (x, b);   //one Gauss-Seidel step
-
-  if (recAMG) {
-    residuum = b - (*pmat) * x;
-    coarse_residuum = ngla::Transpose (*prol) * residuum;   //coarsening
-
-    recAMG->Mult(coarse_residuum, coarse_x);   //recursive solving of coarser problem
-
-    x += (*prol) * coarse_x;   //prolongate back to fine grid
-  }
-
-  jacobi->GSSmoothBack (x, b);   //Gauss-Seidel back
+  std::cout << "needed " << maxcolor+1 << " colors" << std::endl;
 }
-\end{lstlisting}
-
-
-
-\lstset{language=c++, numbers=left, captionpos=t,
-        caption={Gauß-Seidel coloring and balancing},label=lst:jacobi}
-\begin{lstlisting}
-
-  void JacobiPrecond<TM,TV_ROW,TV_COL> :: Coloring ()
-  {
-    //static Timer timer("JacobiPrecond::Coloring");
-    //RegionTimer reg (timer);
-
-    int height = mat.Height();
-    int width = mat.Width();
-
-    Array<int> row_color(height);   //storage of colors for each row
-    row_color = -1;
-
-    int maxcolor = 0;
-    int basecol = 0;
-
-    Array<unsigned int> mask(width);   //32-bit masks for each column
-
-    int found = 0;
-
-    int num_threads = task_manager->GetNumThreads();
-
-    do
-    {
-      mask = 0;
-
-      int block_size = ceil((double)height / (double)num_threads);  
-
-      for (int block_row = 0; block_row < block_size; ++block_row)  //iterate over blocks to get rows of the whole matrix for every color
-      {
-        for (int threadi = 0; threadi < num_threads; ++threadi)
-        {
-          int row = block_row + threadi * block_size;
-          if (row >= height) break;
-          if (row_color[row] >= 0) continue;  //if the row already has a color continue
-
-          int first = mat.firsti [row];
-          int last  = mat.firsti [row+1];
-
-          unsigned check = 0;
-          for (int i = first; i < last; ++i)   //iterate over the entries of the row
-            check |= mask[mat.colnr[i]];   //check is the union of all masks corresponding to nze in the row
-
-//find the next possible color
-          if (check != UINT_MAX) 
-          {
-            found++;
-            unsigned checkbit = 1;
-            int color = basecol;
-            while (check & checkbit)
-            {
-              color++;
-              checkbit *= 2;
-            }
-
-            row_color[row] = color;   //set the color to the current row
-            if (color > maxcolor) maxcolor = color;
-
-            mask[row] |= checkbit;   //update the mask
-          }
-        }
-      }
-
-      basecol += 8*sizeof(unsigned int); // 32;
-    }
-    while (found < height);
-
-    Array<int> cntcol(maxcolor+1);
-    cntcol = 0;
-    for (int row = 0; row < height; ++row)
-      ++cntcol[row_color[row]];   //count rows per color
-
-    coloring_ = Table<int>(cntcol);
-
-    cntcol = 0;
-    for (int row = 0; row < height; ++row)
-      coloring_[row_color[row]][cntcol[row_color[row]]++] = row;   //construct colors to row mapping
-    balancing_.SetSize (maxcolor+1);
-    for (auto c : Range (balancing_))
-    {
-      balancing_[c].Calc (coloring_[c].Size(),
-        [&] (int bi)
-        {
-          return 5 + mat.GetRowIndices(coloring_[c][bi]).Size();
-        });
-    }
-
-    //cout << "Balancing: " << balancing_ << endl;
-    std::cout << "needed " << maxcolor+1 << " colors" << std::endl;
-  }
 
 \end{lstlisting}
 
 \lstset{language=c++, numbers=left, captionpos=t,
         caption={Gauß-Seidel Smooth},label=lst:gss}
 \begin{lstlisting}
+void JacobiPrecond<TM,TV_ROW,TV_COL> ::
+GSSmooth (BaseVector & x, const BaseVector & b) const
+{
+  FlatVector<TV_ROW> fx = x.FV<TV_ROW> ();
+  const FlatVector<TV_ROW> fb = b.FV<TV_ROW> ();
 
-
-
-  void JacobiPrecond<TM,TV_ROW,TV_COL> ::
-  GSSmooth (BaseVector & x, const BaseVector & b) const
+  // iterate sequential over colors
+  for (int j = 0; j < this->coloring_.Size(); ++j)
   {
-
-    FlatVector<TV_ROW> fx = x.FV<TV_ROW> ();
-    const FlatVector<TV_ROW> fb = b.FV<TV_ROW> ();
-
-    for (int j = 0; j < this->coloring_.Size(); ++j)  //iterate sequential over colors
-    {
-      auto color = this->coloring_[j];
-      ParallelFor( this->balancing_[j],   //task-manager based parallelization
-        [this, fx, fb, color] (int i)
+    auto color = this->coloring_[j];
+    // task-manager based parallelization
+    ParallelFor( this->balancing_[j],
+      [this, fx, fb, color] (int i)
+      {
+        int row = color[i];
+        if (!this->inner || this->inner->Test(row))
         {
-          int row = color[i];
-          if (!this->inner || this->inner->Test(row))
-          {
-            TV_ROW ax = mat.RowTimesVector (row, fx);
-            fx(row) += invdiag[row] * (fb(row) - ax);
-          }
-        }, 4);
-    }
+          TV_ROW ax = mat.RowTimesVector (row, fx);
+          fx(row) += invdiag[row] * (fb(row) - ax);
+        }
+      }, 4);
   }
+}
 \end{lstlisting}
 
 \lstset{language=c++, numbers=left, captionpos=t,
         caption={Gauß-Seidel SmoothBack},label=lst:gssb}
 \begin{lstlisting}
-  void JacobiPrecond<TM,TV_ROW,TV_COL> ::
-  GSSmoothBack (BaseVector & x, const BaseVector & b) const
+void JacobiPrecond<TM,TV_ROW,TV_COL> ::
+GSSmoothBack (BaseVector & x, const BaseVector & b) const
+{
+  FlatVector<TV_ROW> fx = x.FV<TV_ROW> ();
+  const FlatVector<TV_ROW> fb = b.FV<TV_ROW> ();
+
+  // iterate sequential over colors
+  for (int j = this->coloring_.Size()-1; j >= 0; --j)
   {
+    auto color = this->coloring_[j];
 
-    FlatVector<TV_ROW> fx = x.FV<TV_ROW> ();
-    const FlatVector<TV_ROW> fb = b.FV<TV_ROW> ();
-
-    for (int j = this->coloring_.Size()-1; j >= 0; --j)   //iterate sequential over colors
-    {
-      auto color = this->coloring_[j];
-      ParallelFor( this->balancing_[j],   //task-manager based parallelization
-        [this, fx, fb, color] (int i)
+    // task-manager based parallelization
+    ParallelFor( this->balancing_[j],
+      [this, fx, fb, color] (int i)
+      {
+        int row = color[i];
+        if (!this->inner || this->inner->Test(row))
         {
-          int row = color[i];
-          if (!this->inner || this->inner->Test(row))
-          {
-            TV_ROW ax = mat.RowTimesVector (row, fx);
-            fx(row) += invdiag[row] * (fb(row) - ax);
-          }
-        }, 4);
-    }
+          TV_ROW ax = mat.RowTimesVector (row, fx);
+          fx(row) += invdiag[row] * (fb(row) - ax);
+        }
+      }, 4);
   }
-
-
+}
 \end{lstlisting}
-
 
 
 \bibliography{doc}{}
