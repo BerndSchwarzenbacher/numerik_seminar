@@ -30,16 +30,16 @@
 \subsection{Iterative Solvers} \label{section:iter}
 Iterative methods are used to solve big systems of linear equations in form of
 matrices.
-In practice the conjugate gradient (CG) method is the most used iterative method for
-the often sparse positive-definite matrices arising from finite-element
+In practice the conjugate gradient (CG) method is the most often used iterative method for
+the (often sparse and positive-definite) matrices arising from finite-element
 discretization of partial differential equations.
-Those method are based on substituting the original problem by the fixed-point
+This method is based on substituting the original problem by the fixed-point
 equation:
 $$b-Ax = 0 \iff x + \tau C^{-1} (b-Ax) = x$$
 where $C$ is an invertible matrix.
 
 From this formulation, one can immediately derive the
-{\em Richardson Iteration}\/, which is the simplest iterative method and is
+{\em Richardson Iteration}\/, which is a simple iterative method and is
 used here to illustrate some essential aspects:
 
 \begin{algorithm}
@@ -52,7 +52,7 @@ used here to illustrate some essential aspects:
 \end{algorithmic}
 \end{algorithm}
 
-The matrix $C$ denotes the so-called preconditioner, which is used is to
+The matrix $C$ denotes the so-called preconditioner, which is used to
 improve the condition of the problem to obtain faster convergence speed.
 It should fulfill two major conditions:
 \begin{itemize}
@@ -60,15 +60,15 @@ It should fulfill two major conditions:
 \item good approximation of $A$
 \end{itemize}
 
-The first approach is for $C$ is to take the diagonal of $A$ as the
+A first approach for $C$ is to take the diagonal of $A$ as the
 preconditioner:
 $$C = diag(A)$$
-This constitutes the Jacobi method:
+This constitutes the {Jacobi method}:
 $$ x_j^{new} = x_j^{old} + \frac{1}{A_{jj}} \left(b_{j} -
                \sum_{k} A_{jk} x_k^{old}\right)
                \qquad j = 1 \dots n$$
-It can be altered to use the newly computed entries as well. This gives rise to
-the Gauss-Seidel method, which is described in more detail in
+It can be altered to use the newly computed entries as well. This leads to
+the {Gauss-Seidel method}, which is described in more detail in
 chapter~\ref{section:gs}.
 \cite{iterative}
 
@@ -106,7 +106,7 @@ First the transposed prolongation matrix projects the residuum on a
 coarser space, where the problem can be solved directly and then the computed
 update gets prolongated back onto the fine space by multiplication with $P$.
 An iterative step with two levels is thus described by:
-$$x^{new} = x^{old} + P (P^{T} A P)^{-1} P^{T} (b - A x^{old})$$
+$$x^{new} = x^{old} +\underbrace{P}_\text{refine}\cdot \underbrace{(P^{T} A P)^{-1}}_\text{solve the coarsed problem}\cdot \underbrace{P^{T}}_\text{coarse the residuum} (b - A x^{old})$$
 
 The combination with the Gauß-Seidel method is provided by solving the problem
 recursively on multiple levels and applying a forward and backward smoothing
